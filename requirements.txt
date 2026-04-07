@@ -1,0 +1,16 @@
+langgraph
+langchain
+langchain-core
+pydantic
+python-dotenv
+pandas
+numpy
+scikit-learn
+matplotlib
+plotly
+nltk
+spacy
+gensim
+openpyxl
+pyarrow
+pytest
