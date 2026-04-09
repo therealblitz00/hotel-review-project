@@ -1,3 +1,4 @@
+selenium
 langgraph
 langchain
 langchain-core
@@ -10,7 +11,6 @@ matplotlib
 plotly
 nltk
 spacy
-gensim
 openpyxl
 pyarrow
 pytest
