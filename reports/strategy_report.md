@@ -1,0 +1,148 @@
+# Strategic Recommendations Report
+
+**Reviews analysed:** 999  
+**Period:** 2023-03 to 2026-04  
+**Overall average score:** 8.24/10  
+**Negative review share:** 6.4%  
+**Sentiment classifier (binary F1-macro):** 0.6548  
+
+---
+
+## Executive Summary
+
+Analysis of 999 guest reviews spanning 2023-03 to 2026-04 reveals a hotel performing strongly overall (avg score 8.24/10, 78% positive sentiment) with a clear differentiation advantage in staff quality and location. However, three areas require targeted investment: WiFi and check-in friction (lowest topic score: 7.63/10), family guest experience (lowest traveler-type score), and room comfort consistency. Seven evidence-backed recommendations follow, prioritised by guest impact and implementation effort.
+
+---
+
+## Recommendations
+
+### R1: Improve WiFi Quality and Check-in Experience
+
+**Priority:** 🔴 High  
+
+**Evidence:**  
+The 'Check-in & WiFi' topic has the lowest average guest score (7.63/10) across 86 reviews. Top keywords include: location, key, station, reception, wifi, time. Guest feedback highlights weak WiFi signal in bedrooms and friction around key access at night.
+
+**Recommended actions:**
+
+- Audit WiFi signal strength across all room floors and install repeaters in weak zones.
+- Introduce digital key or PIN-code access to eliminate late-night lockout issues.
+- Add a self-service check-in kiosk or clearly communicate late-night arrival procedure at booking.
+
+**KPI:** Raise 'Check-in & WiFi' topic avg score from 7.63 to ≥8.50 within 6 months.
+
+---
+
+### R2: Enhance Offering for Family Guests
+
+**Priority:** 🔴 High  
+
+**Evidence:**  
+Family guests record the lowest average score (7.98/10) compared to Couples (8.35/10), Solo travellers (8.13/10), and Groups (8.24/10). Topic analysis shows Room Comfort & Cleanliness (avg 8.00) is a recurring theme among lower-scoring reviews.
+
+**Recommended actions:**
+
+- Offer family-friendly room configurations (interconnecting rooms or cot availability) with clear booking options.
+- Add child-oriented breakfast items and designate a quiet family dining area.
+- Create a printed city guide tailored to families with children (nearby parks, child-safe restaurants).
+
+**KPI:** Raise Family avg score from 7.98 to ≥8.20 within 9 months.
+
+---
+
+### R4: Implement a Proactive Negative-Review Response Programme
+
+**Priority:** 🔴 High  
+
+**Evidence:**  
+64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6548, CV 0.7019) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.
+
+**Recommended actions:**
+
+- Deploy the trained binary sentiment model to auto-flag incoming reviews with score < 6.
+- Set a 24-hour SLA for management responses to flagged reviews with personalised, non-template replies.
+- Conduct monthly root-cause analysis on negative reviews and feed findings into operational briefings.
+
+**KPI:** Reduce negative review share from 6.4% to ≤4% within 12 months.
+
+---
+
+### R3: Leverage Staff Excellence as a Core Marketing Differentiator
+
+**Priority:** 🟡 Medium  
+
+**Evidence:**  
+'Staff & Service' is the single largest topic cluster with 341 reviews (avg score 8.52/10). Top terms — location, staff, breakfast, friendly, helpful, clean — confirm that guests value staff friendliness and the hotel's quirky vintage identity. Overall average score of 8.24/10 reflects a strongly positive baseline.
+
+**Recommended actions:**
+
+- Feature authentic guest quotes about staff in OTA listings and social media campaigns.
+- Launch a 'Staff Spotlight' Instagram series showcasing team members and the hotel's vintage character.
+- Nominate consistently praised staff members for hospitality awards to amplify reputation.
+
+**KPI:** Increase direct bookings by 10% within 12 months by tracking referral source in PMS.
+
+---
+
+### R5: Grow Iberian and Continental European Market Share
+
+**Priority:** 🟡 Medium  
+
+**Evidence:**  
+United Kingdom dominates with 238 reviews (23.8% of total). Spain and Portugal combined account for only 89 reviews (8.9% of total), representing significant local demand untapped given the hotel's Porto location. Italy (36 reviews) and Germany (24 reviews) also show growth potential.
+
+**Recommended actions:**
+
+- Translate OTA listing descriptions and key guest communications into Spanish, Portuguese, Italian, and German.
+- Partner with Iberian corporate travel agencies and offer weekend city-break packages targeting Lisbon and Madrid.
+- Run geo-targeted paid social ads on Instagram/Facebook for ES, PT, IT, and DE audiences.
+
+**KPI:** Grow Iberian + Continental European review share from 8.9% to ≥15% within 18 months.
+
+---
+
+### R6: Standardise Room Comfort and Cleanliness Across All Room Types
+
+**Priority:** 🟡 Medium  
+
+**Evidence:**  
+'Room Comfort & Cleanliness' is the second-largest topic cluster (290 reviews, avg 8.00/10). Keywords such as 'small', 'bed', 'bathroom', and 'clean' suggest mixed experiences around room size and cleanliness consistency. Budget Double Room is the most reviewed room type (455 reviews).
+
+**Recommended actions:**
+
+- Introduce a standardised room-readiness checklist signed off by housekeeping before every guest arrival.
+- Pilot a mattress and pillow upgrade in Budget Double Rooms and measure score impact over 90 days.
+- Set room-type-specific expectations in OTA photos and descriptions to reduce size-related disappointment.
+
+**KPI:** Raise 'Room Comfort & Cleanliness' topic avg score from 8.00 to ≥8.40.
+
+---
+
+### R7: Strengthen Value Perception for Price-Sensitive Guests
+
+**Priority:** 🟢 Low  
+
+**Evidence:**  
+The 'Value & Overall Experience' topic (95 reviews, avg 8.35/10) shows keywords like 'price', 'value', 'money', and 'recommend'. Some reviews mention paying ~€190/night and feeling underwhelmed. Price anchoring against local alternatives can shift guest expectations.
+
+**Recommended actions:**
+
+- Offer an 'Early Bird' rate (≥21 days ahead) and a 'Last Minute' rate to capture price-sensitive segments.
+- Bundle breakfast in promoted packages and quantify the inclusion value in OTA listings.
+- Highlight unique amenities (rooftop, vintage decor, central location) in post-booking confirmation emails to reinforce value before arrival.
+
+**KPI:** Raise 'Value & Overall Experience' topic avg score from 8.35 to ≥8.60.
+
+---
+
+## Methodology
+
+Recommendations are derived programmatically from three pipeline artifacts:
+
+| Artifact | Content |
+| --- | --- |
+| `artifacts/eda_summary.json` | Score statistics, sentiment distribution, traveler types, country breakdown |
+| `artifacts/sentiment_metrics.json` | Model F1-macro scores (VADER baseline, LR, LinearSVC 3-class and binary) |
+| `artifacts/topics.json` | LDA topic labels, review counts, avg scores, and representative excerpts |
+
+No large language model was used in recommendation generation. All thresholds and priorities are derived from quantitative signals in the above artifacts.

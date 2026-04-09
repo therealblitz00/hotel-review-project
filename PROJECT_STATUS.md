@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-04-09
-**Current phase:** Data ingestion — raw data collected, ready for ingestion agent
+**Current phase:** Data cleaning — ingestion complete, ready for cleaning agent
 
 ---
 
@@ -20,7 +20,7 @@ A multi-stage data science pipeline that scrapes hotel reviews from Booking.com,
 | Scraper (`scrapper.py`) | **Complete** |
 | Data acquisition (raw CSV) | **Complete** — 1000 reviews in `data/raw/reviews_raw.csv` |
 | Orchestration layer (LangGraph) | Skeleton only — all nodes are stubs |
-| Data ingestion agent | Stub only |
+| Data ingestion agent | **Complete** |
 | Data cleaning agent | Stub only |
 | EDA agent | Stub only |
 | Sentiment analysis agent | Not implemented |
@@ -72,21 +72,26 @@ A multi-stage data science pipeline that scrapes hotel reviews from Booking.com,
 
 ## Current Blockers
 
-1. **All orchestration nodes are stubs** — `main.py` runs but produces no real output.
-2. **No agent implementations** — `src/agents/` is empty. Ingestion agent is the immediate next step.
+1. **Cleaning, EDA, and all later nodes are stubs** — real agent implementations needed.
 
 ---
 
 ## Current Task
 
-**Task 3 — Implement the data ingestion agent.**
+**Task 4 — Data cleaning agent.**
 
-Raw data is available at `data/raw/reviews_raw.csv` (1000 rows, 11 columns). The ingestion agent must load it, validate schema, and produce `reports/ingestion_report.md` and `artifacts/schema_raw.json`.
+Key cleaning requirements identified from ingestion report:
 
-See `PROJECT_TASK_PLAN.md` for the full sequenced task list.
+- `nr_nights` — string like `"3 nights ✈"`, needs integer extraction
+- `date` — string like `"April 2026"`, needs datetime parsing
+- `score` — already float, needs sentiment label derived from it
+- `hotel_response` — 100% null, should be dropped
+- `pos_review` + `neg_review` — concatenate into `full_review_text`
+- `neg_review` — 28.9% null (fill with empty string before concat)
+- `pos_review` — 2.4% null (fill with empty string before concat)
 
 ---
 
 ## Single Best Next Step
 
-Implement `src/agents/ingestion.py` and wire it into `src/orchestration/graph.py` to replace the dummy ingestion stub.
+Implement `src/agents/cleaning.py` and wire it into `src/orchestration/graph.py`.
