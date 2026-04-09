@@ -103,6 +103,14 @@ Notes:
 - Default browser is Chrome via Selenium Manager.
 - You can override the hotel URL with `--url` or `BOOKING_HOTEL_URL`.
 
+## Versioned Dataset
+
+The repository now includes the current working dataset in git:
+- `data/raw/reviews_raw.csv` (raw Booking.com scrape output)
+- `data/processed/reviews_clean.csv` (cleaned dataset used by the pipeline)
+
+This allows a fresh clone to run analysis stages without re-scraping first.
+
 ## Run the Full Pipeline
 
 ```powershell
