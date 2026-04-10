@@ -16,6 +16,8 @@ import os
 import re
 import time
 from pathlib import Path
+
+from src.utils.paths import RAW_DIR
 from time import sleep
 
 import pandas as pd
@@ -632,7 +634,7 @@ def main():
     )
     p.add_argument(
         "--out",
-        default="data/raw/reviews_raw.csv",
+        default=str(RAW_DIR / "reviews_raw.csv"),
         help="Output CSV path",
     )
     p.add_argument(

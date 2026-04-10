@@ -9,6 +9,17 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import nltk
+from src.utils.paths import NLTK_DATA_DIR
+
+NLTK_DATA_DIR.mkdir(exist_ok=True)
+if str(NLTK_DATA_DIR) not in nltk.data.path:
+    nltk.data.path.insert(0, str(NLTK_DATA_DIR))
+try:
+    nltk.data.find("sentiment/vader_lexicon.zip")
+except LookupError:
+    nltk.download("vader_lexicon", download_dir=str(NLTK_DATA_DIR), quiet=True)
+
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression

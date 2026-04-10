@@ -13,10 +13,11 @@ import pytest
 
 def _import_scrapper():
     """Import scrapper from project root (not a package)."""
-    import importlib.util, pathlib
+    import importlib.util
+    from src.utils.paths import ROOT_DIR
     spec = importlib.util.spec_from_file_location(
         "scrapper",
-        pathlib.Path(__file__).resolve().parents[1] / "scrapper.py",
+        ROOT_DIR / "scrapper.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -116,10 +117,11 @@ class TestArgparseDefaults:
         # Re-create the parser the same way scrapper.py does it
         parser = argparse.ArgumentParser()
         parser.add_argument("--url", default=scrapper.DEFAULT_HOTEL_URL)
-        parser.add_argument("--out", default="data/raw/reviews_raw.csv")
+        from src.utils.paths import RAW_DIR
+        parser.add_argument("--out", default=str(RAW_DIR / "reviews_raw.csv"))
         parser.add_argument("--max-pages", type=int, default=0)
         args = parser.parse_args([])
-        assert args.out == "data/raw/reviews_raw.csv"
+        assert args.out == str(RAW_DIR / "reviews_raw.csv")
 
     def test_default_max_pages_is_zero(self, scrapper):
         import argparse

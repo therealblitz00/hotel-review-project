@@ -14,3 +14,5 @@ DOCS_DIR = ROOT_DIR / "docs"
 PROMPTS_DIR = ROOT_DIR / "prompts"
 SRC_DIR = ROOT_DIR / "src"
 TESTS_DIR = ROOT_DIR / "tests"
+
+NLTK_DATA_DIR = ROOT_DIR / "nltk_data"
