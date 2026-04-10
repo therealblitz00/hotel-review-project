@@ -11,11 +11,7 @@ pandas
 numpy
 scikit-learn
 matplotlib
-plotly
 nltk
-spacy
-openpyxl
-pyarrow
 pytest
 transformers
 torch
