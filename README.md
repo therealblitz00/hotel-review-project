@@ -72,17 +72,13 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-### 3. Download NLTK VADER lexicon
-
-```powershell
-python -c "import nltk; nltk.download('vader_lexicon')"
-```
-
-### 4. Run the full pipeline
+### 3. Run the full pipeline
 
 ```powershell
 python main.py
 ```
+
+The NLTK `vader_lexicon` is downloaded automatically into `nltk_data/` on first run.
 
 > **Note:** XLM-RoBERTa fine-tuning runs on CPU and takes ~15–30 minutes. All other agents complete in under 30 seconds combined.
 
@@ -98,16 +94,17 @@ Re-scraping is optional — the repository includes the current working dataset:
 To re-scrape:
 
 ```powershell
-python scrapper.py --max-pages 100 --out data/raw/reviews_raw.csv
+python scripts/scrapper.py --max-pages 100
 ```
 
-Options: `--url` or `BOOKING_HOTEL_URL` env var to override the default hotel URL.
+Options: `--url` or `BOOKING_HOTEL_URL` env var to override the default hotel URL.  
+Output goes to `data/raw/reviews_raw.csv` by default.
 
 ---
 
 ## Outputs
 
-### Reports (`reports/`)
+### Analysis Reports (`reports/`)
 
 | File | Description |
 | --- | --- |
@@ -119,8 +116,13 @@ Options: `--url` or `BOOKING_HOTEL_URL` env var to override the default hotel UR
 | `topic_report.md` | 6 LDA topics with keywords and avg scores |
 | `absa_report.md` | 8-aspect sentiment breakdown + traveler×aspect heatmap |
 | `strategy_report.md` | 7 recommendations with KPIs, owners, timelines |
-| `whitepaper_draft.md` | ~3,300-word white paper (7 sections + appendices) |
 | `reviewer_comments.md` | Automated consistency check results |
+
+### Deliverables (`docs/deliverables/`)
+
+| File | Description |
+| --- | --- |
+| `whitepaper_draft.md` | ~3,300-word white paper (7 sections + appendices) |
 | `pitch_script.md` | 5-minute pitch script (8 slides with speaker notes) |
 
 ### Artifacts (`artifacts/`)
@@ -158,37 +160,73 @@ Tests cover scraper utility functions and cleaning agent transformations (49 tes
 
 ```text
 hotel-review-project/
-├── main.py                    # Pipeline entry point
-├── scrapper.py                # Booking.com scraper
+├── main.py                        # Pipeline entry point
 ├── requirements.txt
+├── .env.example
+│
+├── scripts/
+│   └── scrapper.py                # Booking.com scraper (run standalone)
+│
 ├── src/
 │   ├── agents/
 │   │   ├── ingestion.py
-│   │   ├── cleaning.py        # Includes language detection + translation
-│   │   ├── eda.py             # Word clouds, temporal charts
-│   │   ├── segmentation.py    # K-Means k=4
-│   │   ├── sentiment.py       # VADER + TF-IDF models + XLM-RoBERTa
-│   │   ├── topic.py           # LDA 6-topic model
-│   │   ├── absa.py            # Rule-based ABSA (8 aspects, VADER scoring)
-│   │   ├── strategy.py        # Recommendations + decision table
-│   │   ├── writer.py          # White paper generator
-│   │   └── reviewer.py        # Automated consistency checker
+│   │   ├── cleaning.py            # Language detection + translation
+│   │   ├── eda.py                 # Word clouds, temporal charts
+│   │   ├── segmentation.py        # K-Means k=4
+│   │   ├── sentiment.py           # VADER + TF-IDF models + XLM-RoBERTa
+│   │   ├── topic.py               # LDA 6-topic model
+│   │   ├── absa.py                # Rule-based ABSA (8 aspects, VADER scoring)
+│   │   ├── strategy.py            # Recommendations + decision table
+│   │   ├── writer.py              # White paper generator
+│   │   └── reviewer.py            # Automated consistency checker
 │   ├── orchestration/
-│   │   ├── graph.py           # LangGraph StateGraph (11 nodes)
-│   │   └── state.py           # WorkflowState definition
+│   │   ├── graph.py               # LangGraph StateGraph (11 nodes)
+│   │   └── state.py               # WorkflowState definition
 │   └── utils/
+│       ├── paths.py               # All project-relative path constants
+│       ├── config.py
+│       └── logging_utils.py
+│
 ├── data/
 │   ├── raw/reviews_raw.csv
 │   └── processed/reviews_clean.csv
-├── reports/
-├── artifacts/
-└── tests/
+│
+├── reports/                       # Analysis reports + figures
+│   ├── figures/                   # 27 generated PNG charts
+│   ├── ingestion_report.md
+│   ├── data_quality_report.md
+│   ├── eda_report.md
+│   ├── segmentation_report.md
+│   ├── sentiment_report.md
+│   ├── topic_report.md
+│   ├── absa_report.md
+│   ├── strategy_report.md
+│   └── reviewer_comments.md
+│
+├── docs/
+│   ├── architecture/              # Technical documentation
+│   │   ├── agents.md
+│   │   ├── workflow.md
+│   │   └── REPO_STRUCTURE.md
+│   ├── deliverables/              # Final output documents
+│   │   ├── whitepaper_draft.md
+│   │   └── pitch_script.md
+│   └── project/                   # Project management docs
+│       ├── PROJECT_STATUS.md
+│       ├── PROJECT_TASK_PLAN.md
+│       ├── UNIVERSITY_PROJECT_BRIEF.md
+│       ├── AI_EXECUTION_PLAYBOOK.md
+│       └── handoff.md
+│
+├── artifacts/                     # JSON/CSV pipeline outputs
+├── tests/                         # pytest test suite
+└── nltk_data/                     # Auto-downloaded NLTK resources
 ```
 
 ---
 
 ## Documentation
 
-- `docs/agents.md` — Agent contracts and responsibilities
-- `docs/workflow.md` — Workflow and approval gates
-- `AI_EXECUTION_PLAYBOOK.md` — AI execution rules
+- [`docs/architecture/agents.md`](docs/architecture/agents.md) — Agent contracts and responsibilities
+- [`docs/architecture/workflow.md`](docs/architecture/workflow.md) — Workflow and approval gates
+- [`docs/project/AI_EXECUTION_PLAYBOOK.md`](docs/project/AI_EXECUTION_PLAYBOOK.md) — AI execution rules

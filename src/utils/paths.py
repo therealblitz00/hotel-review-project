@@ -16,3 +16,5 @@ SRC_DIR = ROOT_DIR / "src"
 TESTS_DIR = ROOT_DIR / "tests"
 
 NLTK_DATA_DIR = ROOT_DIR / "nltk_data"
+
+SCRIPTS_DIR = ROOT_DIR / "scripts"

@@ -12,12 +12,12 @@ import pytest
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _import_scrapper():
-    """Import scrapper from project root (not a package)."""
+    """Import scrapper from scripts/ directory."""
     import importlib.util
-    from src.utils.paths import ROOT_DIR
+    from src.utils.paths import SCRIPTS_DIR
     spec = importlib.util.spec_from_file_location(
         "scrapper",
-        ROOT_DIR / "scrapper.py",
+        SCRIPTS_DIR / "scrapper.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
