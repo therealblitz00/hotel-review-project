@@ -6,25 +6,23 @@
 
 ## Label definition
 
-Labels are derived from the Booking.com numerical score:
+Labels are derived from Booking.com numerical scores:
 
-- **positive:** score >= 8  (779 reviews, 78.0%)
-- **neutral:** score 6–7  (156 reviews, 15.6%)
-- **negative:** score < 6  (64 reviews, 6.4%)
-
-The dataset is heavily imbalanced. Class-balanced training weights are applied to all trained classifiers.
+- positive: score >= 8
+- neutral: score 6-7
+- negative: score < 6
 
 ## Root cause of low 3-class F1
 
-The boundary between *positive* (score 8) and *neutral* (score 7) is not reliably encoded in text — guests with similar wording assign different numerical scores. This is a label-signal mismatch, not a modelling failure. A binary task (positive ≥ 8 vs non-positive < 8) provides a cleaner linguistic boundary and is reported alongside the 3-class results.
+The boundary between positive (score 8) and neutral (score 7) is weakly encoded in text. This causes structural ambiguity for 3-class text classifiers. Binary classification (positive vs non-positive) remains more stable.
 
-## Model results — 3-class
+## Model results - 3-class
 
 | Model | Accuracy | F1-macro | CV F1-macro |
 | --- | --- | --- | --- |
-| VADER (baseline) | 0.6700 | 0.4573 | — |
-| TF-IDF + LR | 0.7350 | 0.5245 | 0.4917 ± 0.0231 |
-| TF-IDF + LinearSVC | 0.7850 | 0.4993 | 0.4501 ± 0.0342 |
+| VADER (baseline) | 0.6700 | 0.4573 | - |
+| TF-IDF + LR | 0.7350 | 0.5245 | 0.4917 +/- 0.0231 |
+| TF-IDF + LinearSVC | 0.7850 | 0.4993 | 0.4501 +/- 0.0342 |
 
 ### LinearSVC per-class (3-class, test set)
 
@@ -34,11 +32,11 @@ The boundary between *positive* (score 8) and *neutral* (score 7) is not reliabl
 | neutral | 0.381 | 0.258 | 0.308 | 31 |
 | negative | 0.429 | 0.231 | 0.3 | 13 |
 
-## Model results — binary (positive vs non-positive)
+## Model results - binary (positive vs non-positive)
 
 | Model | Accuracy | F1-macro | CV F1-macro |
 | --- | --- | --- | --- |
-| TF-IDF + LinearSVC | 0.7650 | 0.6548 | 0.7019 ± 0.0116 |
+| TF-IDF + LinearSVC | 0.7650 | 0.6548 | 0.7019 +/- 0.0116 |
 
 ### LinearSVC per-class (binary, test set)
 
@@ -47,9 +45,14 @@ The boundary between *positive* (score 8) and *neutral* (score 7) is not reliabl
 | positive | 0.847 | 0.853 | 0.85 | 156 |
 | non-positive | 0.465 | 0.455 | 0.46 | 44 |
 
+## Transformer upgrade (XLM-RoBERTa)
+
+- Status: skipped
+- Reason: transformer dependencies unavailable: No module named 'torch'
+
 ## Interpretation
 
-LinearSVC outperforms Logistic Regression on the 3-class task. The binary task confirms that text reliably distinguishes satisfied guests (score ≥ 8) from dissatisfied ones (score < 8), with F1-macro of 0.6548. The 3-class F1 is structurally limited by the fuzzy 7/8 score boundary in the label definition.
+LinearSVC remains a robust baseline and binary classification is still the most stable task. The transformer model is included as an advanced multilingual upgrade path for richer NLP depth.
 
 ## Figures
 

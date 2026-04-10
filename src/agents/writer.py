@@ -196,6 +196,8 @@ def _section_sentiment(sentiment: dict) -> list[str]:
     svc3 = sentiment["svc_3class"]
     svcb = sentiment["svc_binary"]
     vader = sentiment["vader_baseline"]
+    xlmr = sentiment.get("xlmr_3class", {})
+    xlmr_ok = isinstance(xlmr, dict) and xlmr.get("status") == "success"
 
     lines = [
         "## 4. Sentiment Analysis",
@@ -203,7 +205,7 @@ def _section_sentiment(sentiment: dict) -> list[str]:
         "### 4.1 Approach",
         "",
         "Three classifiers were evaluated against a VADER lexicon baseline across two task "
-        "formulations — 3-class (positive / neutral / negative) and binary (positive vs "
+        "formulations - 3-class (positive / neutral / negative) and binary (positive vs "
         "non-positive). All supervised models use TF-IDF features (max 8,000 terms, 1-2 ngrams, "
         "sublinear TF scaling) with class_weight='balanced' to compensate for the 78/15.6/6.4% "
         "class imbalance. Evaluation uses macro-averaged F1. Cross-validation uses 5-fold "
@@ -213,12 +215,41 @@ def _section_sentiment(sentiment: dict) -> list[str]:
         "",
         "| Model | Task | Accuracy | F1-macro | CV F1-macro |",
         "| --- | --- | --- | --- | --- |",
-        f"| VADER (baseline) | 3-class | {vader['accuracy']:.3f} | {vader['f1_macro']:.4f} | — |",
+        f"| VADER (baseline) | 3-class | {vader['accuracy']:.3f} | {vader['f1_macro']:.4f} | - |",
         f"| TF-IDF + LR | 3-class | {lr['accuracy']:.3f} | {lr['f1_macro']:.4f} | {lr['cv_f1_macro_mean']:.4f} +/- {lr['cv_f1_macro_std']:.4f} |",
         f"| TF-IDF + LinearSVC | 3-class | {svc3['accuracy']:.3f} | {svc3['f1_macro']:.4f} | {svc3['cv_f1_macro_mean']:.4f} +/- {svc3['cv_f1_macro_std']:.4f} |",
         f"| TF-IDF + LinearSVC | Binary | {svcb['accuracy']:.3f} | {svcb['f1_macro']:.4f} | {svcb['cv_f1_macro_mean']:.4f} +/- {svcb['cv_f1_macro_std']:.4f} |",
+    ]
+
+    if xlmr_ok:
+        lines.append(
+            f"| XLM-RoBERTa (fine-tuned) | 3-class | {xlmr['accuracy']:.3f} | {xlmr['f1_macro']:.4f} | - |"
+        )
+
+    lines += [
         "",
-        "### 4.3 Interpretation and Operational Application",
+        "### 4.3 Transformer Upgrade (XLM-RoBERTa)",
+        "",
+    ]
+
+    if xlmr_ok:
+        lines += [
+            f"The multilingual transformer benchmark achieved F1-macro {xlmr['f1_macro']:.4f} "
+            f"(accuracy {xlmr['accuracy']:.3f}) on the 3-class task.",
+            "",
+            "This adds modern deep-learning NLP depth and stronger multilingual coverage "
+            "on top of the TF-IDF baselines.",
+            "",
+        ]
+    else:
+        lines += [
+            "Transformer training was skipped in this run due to environment/dependency constraints.",
+            f"Reason: {xlmr.get('reason', 'not available') if isinstance(xlmr, dict) else 'not available'}",
+            "",
+        ]
+
+    lines += [
+        "### 4.4 Interpretation and Operational Application",
         "",
         f"The 3-class macro F1 ({lr['f1_macro']:.4f} for LR) reflects a structural "
         "label-signal mismatch: review text at the score-7/score-8 boundary is linguistically "
@@ -526,3 +557,4 @@ def run_writer(state: WorkflowState) -> WorkflowState:
         "report": str(WHITEPAPER),
     }
     return state
+
