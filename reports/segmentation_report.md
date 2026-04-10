@@ -20,7 +20,7 @@
 - **Size:** 518 reviews (51.9% of total)
 - **Average score:** 8.35 ± 1.53
 - **Avg stay:** 2.9 nights
-- **Avg review length:** 31.9 words
+- **Avg review length:** 32.1 words
 - **Dominant traveler type:** Couple
 - **Dominant sentiment:** positive
 - **Top reviewer country:** United Kingdom
@@ -36,7 +36,7 @@
 - **Size:** 131 reviews (13.1% of total)
 - **Average score:** 8.24 ± 1.74
 - **Avg stay:** 2.6 nights
-- **Avg review length:** 33.8 words
+- **Avg review length:** 34.1 words
 - **Dominant traveler type:** Group
 - **Dominant sentiment:** positive
 - **Top reviewer country:** United Kingdom
@@ -52,7 +52,7 @@
 - **Size:** 226 reviews (22.6% of total)
 - **Average score:** 8.13 ± 1.8
 - **Avg stay:** 2.4 nights
-- **Avg review length:** 39.9 words
+- **Avg review length:** 40.0 words
 - **Dominant traveler type:** Solo traveller
 - **Dominant sentiment:** positive
 - **Top reviewer country:** United Kingdom

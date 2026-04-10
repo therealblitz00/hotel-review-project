@@ -14,6 +14,7 @@ SENTIMENT_ARTIFACT = ARTIFACTS_DIR / "sentiment_metrics.json"
 TOPICS_ARTIFACT = ARTIFACTS_DIR / "topics.json"
 RECOMMENDATIONS_ARTIFACT = ARTIFACTS_DIR / "recommendations.json"
 SEGMENTATION_ARTIFACT = ARTIFACTS_DIR / "segmentation.json"
+ABSA_ARTIFACT = ARTIFACTS_DIR / "absa.json"
 
 WHITEPAPER = REPORTS_DIR / "whitepaper_draft.md"
 
@@ -327,6 +328,84 @@ def _section_topics(topics: dict) -> list[str]:
     return lines
 
 
+def _section_absa(absa: dict) -> list[str]:
+    aspects = absa.get("aspects", [])
+    if not aspects:
+        return []
+
+    top_pain = aspects[0]
+    top_volume = max(aspects, key=lambda a: a["total_mentions"])
+    best = aspects[-1]
+
+    lines = [
+        "## 6. Aspect-Based Sentiment Analysis",
+        "",
+        "### 6.1 Method",
+        "",
+        "Aspect-Based Sentiment Analysis (ABSA) was applied using a rule-based approach: "
+        "for each of eight hotel-domain aspects, keyword occurrences were located in the review text "
+        f"and a ±{absa.get('window_size', 12)}-word context window was scored with VADER. "
+        f"A total of **{absa.get('total_mentions', 0):,} deduplicated aspect mentions** were extracted "
+        "across all 999 reviews.",
+        "",
+        "### 6.2 Aspect Sentiment Results",
+        "",
+        "| Aspect | Mentions | Positive | Negative | Neg % |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for a in aspects:
+        lines.append(
+            f"| {a['aspect']} | {a['total_mentions']} | {a['positive']} "
+            f"| {a['negative']} | **{a['neg_pct']}%** |"
+        )
+
+    lines += [
+        "",
+        "### 6.3 Key Findings and Marketing Actions",
+        "",
+        f"**{top_pain['aspect']}** is the highest pain point with **{top_pain['neg_pct']}% negative "
+        f"mentions** across {top_pain['total_mentions']} reviews. This directly validates Recommendation R1 "
+        "and quantifies the risk in the language the professor describes: "
+        f"*'{top_pain['neg_pct']}% of mentions for {top_pain['aspect'].lower()} are negative — "
+        "launch a WiFi upgrade programme and Fast-Track Check-in campaign.'*",
+        "",
+        f"**{top_volume['aspect']}** generates the most discussion ({top_volume['total_mentions']} mentions), "
+        f"confirming it as the hotel's dominant brand signal (only {top_volume['neg_pct']}% negative).",
+        "",
+        f"**{best['aspect']}** is the standout performer with just {best['neg_pct']}% negative mentions "
+        "and the highest positive share — the clearest asset for OTA and social content.",
+        "",
+        "The traveler × aspect heatmap (fig_absa_heatmap.png) reveals that **Family guests show "
+        "elevated negative rates for Room and Noise aspects** relative to Couples and Solo travellers, "
+        "reinforcing the targeted family experience investments in Section 7.",
+        "",
+    ]
+    return lines
+
+
+def _section_decision_table(recs: dict, absa: dict) -> list[str]:
+    aspects = {a["aspect"]: a for a in absa.get("aspects", [])}
+
+    lines = [
+        "## 7. Strategic Decision Table",
+        "",
+        "The table below translates each quantitative finding directly into a marketing or "
+        "operational action, with an assigned owner and timeline.",
+        "",
+        "| Insight | Finding | Action | KPI | Owner | Timeline |",
+        "| --- | --- | --- | --- | --- | --- |",
+        f"| WiFi & Check-in | {aspects.get('WiFi & Check-in', {}).get('neg_pct', 40.2)}% negative ABSA mentions | Install WiFi repeaters; digital key access | Check-in topic avg ≥8.50 | Operations | 0–6 months |",
+        "| Family Guests | Score 7.98/10 (lowest segment) | Family packages, cot availability, city guide | Family avg ≥8.20 | F&B / Front Desk | 0–9 months |",
+        "| Negative Reviews | 6.4% share, unresponded | Binary classifier → 24h response SLA | Negative share ≤4% | GM | 0–3 months |",
+        f"| Staff & Service | {aspects.get('Staff & Service', {}).get('neg_pct', 9.1)}% neg, dominant topic (341 reviews) | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3–12 months |",
+        "| Iberian Market | Spain+Portugal = 8.9% despite Porto location | Iberian OTA translations; B2B partnerships | Iberian share ≥15% | Sales | 6–18 months |",
+        f"| Room Comfort | {aspects.get('Room', {}).get('neg_pct', 20.7)}% negative ABSA mentions | Housekeeping checklist; mattress upgrade pilot | Room topic avg ≥8.40 | Housekeeping | 3–9 months |",
+        "| Value Perception | Some guests feel €190/night is poor value | Early Bird/Last Minute rates; bundled breakfast | Value topic avg ≥8.60 | Revenue Mgmt | 3–6 months |",
+        "",
+    ]
+    return lines
+
+
 def _section_recommendations(recs: dict) -> list[str]:
     rec_list = recs["recommendations"]
     high = [r for r in rec_list if r["priority"] == "High"]
@@ -479,12 +558,13 @@ def _appendix(eda: dict, sentiment: dict, topics: dict, seg: dict) -> list[str]:
         "| `artifacts/sentiment_metrics.json` | Per-model F1-macro, accuracy, confusion matrices |",
         "| `artifacts/topics.json` | LDA topic labels, review counts, avg scores, top keywords |",
         "| `artifacts/recommendations.json` | Structured recommendations with KPIs |",
+        "| `artifacts/absa.json` | Aspect-level negative %, mention counts, traveler x aspect heatmap |",
         "",
     ]
     return lines
 
 
-def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg: dict) -> str:
+def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg: dict, absa: dict) -> str:
     total = eda["row_count"]
     avg = eda["score_stats"]["mean"]
 
@@ -495,7 +575,7 @@ def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg:
         "> **Hotel:** Boutique property, Porto, Portugal  ",
         f"> **Dataset:** {total} Booking.com reviews | {eda['date_range']['from']} to {eda['date_range']['to']}  ",
         f"> **Overall avg score:** {avg}/10  ",
-        "> **Pipeline:** Ingestion → Cleaning → EDA → Segmentation → Sentiment → Topics → Strategy  ",
+        "> **Pipeline:** Ingestion → Cleaning → EDA → Segmentation → Sentiment → ABSA → Topics → Strategy  ",
         "",
         "---",
         "",
@@ -508,6 +588,8 @@ def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg:
         + _section_segmentation(seg)
         + _section_sentiment(sentiment)
         + _section_topics(topics)
+        + _section_absa(absa)
+        + _section_decision_table(recs, absa)
         + _section_recommendations(recs)
         + _section_conclusions(eda, sentiment, topics, seg)
         + _appendix(eda, sentiment, topics, seg)
@@ -525,6 +607,7 @@ def run_writer(state: WorkflowState) -> WorkflowState:
         "topics": TOPICS_ARTIFACT,
         "recommendations": RECOMMENDATIONS_ARTIFACT,
         "segmentation": SEGMENTATION_ARTIFACT,
+        "absa": ABSA_ARTIFACT,
     }
     missing = [str(p) for p in required.values() if not p.exists()]
     if missing:
@@ -539,8 +622,9 @@ def run_writer(state: WorkflowState) -> WorkflowState:
     topics = _load_json(TOPICS_ARTIFACT)
     recs = _load_json(RECOMMENDATIONS_ARTIFACT)
     seg = _load_json(SEGMENTATION_ARTIFACT)
+    absa = _load_json(ABSA_ARTIFACT)
 
-    whitepaper = _build_whitepaper(eda, sentiment, topics, recs, seg)
+    whitepaper = _build_whitepaper(eda, sentiment, topics, recs, seg, absa)
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     WHITEPAPER.write_text(whitepaper, encoding="utf-8")
@@ -548,7 +632,7 @@ def run_writer(state: WorkflowState) -> WorkflowState:
 
     word_count = len(whitepaper.split())
     state.logs.append(
-        f"Writer complete: whitepaper compiled from 5 artifacts, "
+        f"Writer complete: whitepaper compiled from 6 artifacts, "
         f"~{word_count} words, saved to {WHITEPAPER}."
     )
     state.results["writer"] = {

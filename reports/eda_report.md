@@ -11,7 +11,7 @@
 - Sentiment breakdown: 779 positive (78.0%), 156 neutral (15.6%), 64 negative (6.4%).
 - The most common reviewer origin is United Kingdom (238 reviews, 23.8% of total).
 - Review volume peaked in 2026-03 (86 reviews).
-- Average review length is 35.3 words (median 23.0); the longest review has 363 words.
+- Average review length is 35.4 words (median 23.0); the longest review has 363 words.
 - Couples represent the largest traveler segment (518 reviews).
 - Budget Double Room is the most reviewed room type (455 reviews).
 
@@ -66,7 +66,7 @@
 
 ## Review length
 
-- Mean word count: 35.3
+- Mean word count: 35.4
 - Median word count: 23.0
 - Max word count: 363
 

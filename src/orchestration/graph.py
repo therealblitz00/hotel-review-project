@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph, END
 
+from src.agents.absa import run_absa
 from src.agents.cleaning import run_cleaning
 from src.agents.eda import run_eda
 from src.agents.ingestion import run_ingestion
@@ -39,6 +40,10 @@ def topic_node(state: WorkflowState) -> WorkflowState:
     return run_topic(state)
 
 
+def absa_node(state: WorkflowState) -> WorkflowState:
+    return run_absa(state)
+
+
 def strategy_node(state: WorkflowState) -> WorkflowState:
     return run_strategy(state)
 
@@ -68,6 +73,7 @@ def build_graph():
     graph.add_node("segmentation", segmentation_node)
     graph.add_node("sentiment", sentiment_node)
     graph.add_node("topic", topic_node)
+    graph.add_node("absa", absa_node)
     graph.add_node("strategy", strategy_node)
     graph.add_node("writer", writer_node)
     graph.add_node("reviewer", reviewer_node)
@@ -79,7 +85,8 @@ def build_graph():
     graph.add_edge("eda", "segmentation")
     graph.add_edge("segmentation", "sentiment")
     graph.add_edge("sentiment", "topic")
-    graph.add_edge("topic", "strategy")
+    graph.add_edge("topic", "absa")
+    graph.add_edge("absa", "strategy")
     graph.add_edge("strategy", "writer")
     graph.add_edge("writer", "reviewer")
     graph.add_edge("reviewer", "final")

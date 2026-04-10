@@ -9,6 +9,14 @@ from src.orchestration.state import WorkflowState
 from src.utils.logging_utils import get_logger
 from src.utils.paths import ARTIFACTS_DIR, PROCESSED_DIR, RAW_DIR, REPORTS_DIR
 
+# Optional multilingual support — graceful fallback if libraries not installed
+try:
+    from langdetect import detect, LangDetectException
+    from deep_translator import GoogleTranslator
+    _TRANSLATION_AVAILABLE = True
+except ImportError:
+    _TRANSLATION_AVAILABLE = False
+
 logger = get_logger(__name__)
 
 RAW_CSV = RAW_DIR / "reviews_raw.csv"
@@ -31,6 +39,27 @@ def _score_to_sentiment(score: float) -> str:
     if score >= 6.0:
         return "neutral"
     return "negative"
+
+
+def _detect_and_translate(text: str) -> tuple[str, str]:
+    """Detect language and translate non-English text to English.
+
+    Returns (translated_text, detected_lang_code).
+    Falls back to original text on any error.
+    """
+    if not _TRANSLATION_AVAILABLE or not text.strip():
+        return text, "en"
+    try:
+        lang = detect(text)
+    except LangDetectException:
+        return text, "unknown"
+    if lang == "en":
+        return text, "en"
+    try:
+        translated = GoogleTranslator(source=lang, target="en").translate(text)
+        return translated or text, lang
+    except Exception:  # network error, unsupported language, etc.
+        return text, lang
 
 
 def run_cleaning(state: WorkflowState) -> WorkflowState:
@@ -79,21 +108,43 @@ def run_cleaning(state: WorkflowState) -> WorkflowState:
         "Created `full_review_text` = pos_review + ' ' + neg_review (stripped)."
     )
 
-    # 6. Drop rows where full_review_text is empty (nothing to analyse)
+    # 6. Detect language and translate non-English reviews to English
+    if _TRANSLATION_AVAILABLE:
+        logger.info("Detecting languages and translating non-English reviews…")
+        results = df["full_review_text"].apply(_detect_and_translate)
+        df["full_review_text"] = results.apply(lambda x: x[0])
+        df["review_language"] = results.apply(lambda x: x[1])
+        lang_counts = df["review_language"].value_counts().to_dict()
+        n_translated = int((df["review_language"] != "en").sum())
+        transformations.append(
+            f"Detected review language (`review_language` column); translated "
+            f"{n_translated} non-English reviews to English via Google Translate. "
+            f"Languages found: {lang_counts}."
+        )
+        logger.info("Translation complete: %d non-English reviews translated.", n_translated)
+    else:
+        df["review_language"] = "en"
+        transformations.append(
+            "Language detection skipped (langdetect / deep-translator not installed). "
+            "Install them with: pip install langdetect deep-translator"
+        )
+        logger.warning("langdetect/deep-translator not available — skipping translation.")
+
+    # 7. Drop rows where full_review_text is empty (nothing to analyse)
     empty_text_mask = df["full_review_text"] == ""
     n_empty = int(empty_text_mask.sum())
     if n_empty:
         df = df[~empty_text_mask].reset_index(drop=True)
         transformations.append(f"Dropped {n_empty} row(s) with empty full_review_text.")
 
-    # 7. Derive sentiment label from score
+    # 8. Derive sentiment label from score
     df["sentiment"] = df["score"].apply(_score_to_sentiment)
     sentiment_counts = df["sentiment"].value_counts().to_dict()
     transformations.append(
         "Created `sentiment` label from score: ≥8 → positive, 6–7 → neutral, <6 → negative."
     )
 
-    # 8. Standardise country casing (title case)
+    # 9. Standardise country casing (title case)
     df["country"] = df["country"].str.strip().str.title()
     transformations.append("Standardised `country` to title case.")
 
@@ -115,6 +166,8 @@ def run_cleaning(state: WorkflowState) -> WorkflowState:
         "columns": {col: str(df[col].dtype) for col in df.columns},
         "null_counts": df.isnull().sum().to_dict(),
         "sentiment_distribution": sentiment_counts,
+        "language_distribution": df["review_language"].value_counts().to_dict(),
+        "translation_available": _TRANSLATION_AVAILABLE,
         "score_stats": {
             "min": float(df["score"].min()),
             "max": float(df["score"].max()),
@@ -175,6 +228,18 @@ def run_cleaning(state: WorkflowState) -> WorkflowState:
     for label, count in sentiment_counts.items():
         pct = round(count / rows_after * 100, 1)
         lines.append(f"| {label} | {count} ({pct}%) |")
+
+    lang_dist = df["review_language"].value_counts().to_dict()
+    lines += [
+        "",
+        "## Review language distribution",
+        "",
+        "| Language code | Count | Share |",
+        "| --- | --- | --- |",
+    ]
+    for lang_code, cnt in lang_dist.items():
+        pct = round(cnt / rows_after * 100, 1)
+        lines.append(f"| {lang_code} | {cnt} | {pct}% |")
 
     lines += [
         "",

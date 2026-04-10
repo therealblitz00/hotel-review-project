@@ -1,5 +1,7 @@
 selenium
 wordcloud
+langdetect
+deep-translator
 langgraph
 langchain
 langchain-core

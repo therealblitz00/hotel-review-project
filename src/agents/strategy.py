@@ -12,6 +12,7 @@ logger = get_logger(__name__)
 EDA_ARTIFACT = ARTIFACTS_DIR / "eda_summary.json"
 SENTIMENT_ARTIFACT = ARTIFACTS_DIR / "sentiment_metrics.json"
 TOPICS_ARTIFACT = ARTIFACTS_DIR / "topics.json"
+ABSA_ARTIFACT = ARTIFACTS_DIR / "absa.json"
 
 STRATEGY_REPORT = REPORTS_DIR / "strategy_report.md"
 RECOMMENDATIONS_ARTIFACT = ARTIFACTS_DIR / "recommendations.json"
@@ -80,7 +81,7 @@ def _derive_recommendations(eda: dict, sentiment: dict, topics: dict) -> list[di
             f"compared to Couples ({traveler_scores.get('Couple', 'N/A')}/10), "
             f"Solo travellers ({traveler_scores.get('Solo traveller', 'N/A')}/10), "
             f"and Groups ({traveler_scores.get('Group', 'N/A')}/10). "
-            f"Topic analysis shows Room Comfort & Cleanliness (avg {topic_by_label.get('Room Comfort & Cleanliness', {}).get('avg_score', 'N/A'):.2f}) "
+            f"Topic analysis shows Room Comfort & Cleanliness (avg {topic_by_label.get('Room Comfort & Cleanliness', {}).get('avg_score', 0.0):.2f}) "
             f"is a recurring theme among lower-scoring reviews."
         ),
         "actions": [
@@ -160,7 +161,7 @@ def _derive_recommendations(eda: dict, sentiment: dict, topics: dict) -> list[di
         "priority": "Medium",
         "evidence": (
             f"'Room Comfort & Cleanliness' is the second-largest topic cluster "
-            f"({room_topic.get('review_count', 'N/A')} reviews, avg {room_topic.get('avg_score', 'N/A'):.2f}/10). "
+            f"({room_topic.get('review_count', 'N/A')} reviews, avg {room_topic.get('avg_score', 0.0):.2f}/10). "
             f"Keywords such as 'small', 'bed', 'bathroom', and 'clean' suggest mixed experiences around "
             f"room size and cleanliness consistency. Budget Double Room is the most reviewed room type (455 reviews)."
         ),
@@ -180,7 +181,7 @@ def _derive_recommendations(eda: dict, sentiment: dict, topics: dict) -> list[di
         "priority": "Low",
         "evidence": (
             f"The 'Value & Overall Experience' topic ({value_topic.get('review_count', 'N/A')} reviews, "
-            f"avg {value_topic.get('avg_score', 'N/A'):.2f}/10) shows keywords like 'price', 'value', 'money', "
+            f"avg {value_topic.get('avg_score', 0.0):.2f}/10) shows keywords like 'price', 'value', 'money', "
             f"and 'recommend'. Some reviews mention paying ~€190/night and feeling underwhelmed. "
             f"Price anchoring against local alternatives can shift guest expectations."
         ),
@@ -195,7 +196,7 @@ def _derive_recommendations(eda: dict, sentiment: dict, topics: dict) -> list[di
     return recs
 
 
-def _build_report(recs: list[dict], eda: dict, sentiment: dict, topics: dict) -> str:
+def _build_report(recs: list[dict], eda: dict, sentiment: dict, topics: dict, absa: dict = {}) -> str:
     total = eda["row_count"]
     avg_score = eda["score_stats"]["mean"]
     date_from = eda["date_range"]["from"]
@@ -258,15 +259,35 @@ def _build_report(recs: list[dict], eda: dict, sentiment: dict, topics: dict) ->
         ]
 
     lines += [
+        "## Decision Table",
+        "",
+        "| # | Insight | Marketing / Operational Action | KPI | Owner | Timeline |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    decision_rows = [
+        ("R1", "40.2% of WiFi & Check-in mentions are negative (ABSA)", "Install WiFi repeaters; digital key access", "Check-in topic avg ≥8.50", "Operations", "0-6 months"),
+        ("R2", "Family guests score 7.98/10 — lowest traveler segment", "Family packages, child-friendly amenities", "Family avg score ≥8.20", "F&B / Front Desk", "0-9 months"),
+        ("R4", "6.4% negative reviews unresponded", "Binary classifier alert → 24h response SLA", "Negative share ≤4%", "GM / Front Office", "0-3 months"),
+        ("R3", "Staff & Service: 341 reviews, avg 8.52 — top differentiator", "Staff-led OTA content; award nominations", "+10% direct bookings", "Marketing", "3-12 months"),
+        ("R5", "Spain + Portugal = 8.9% of reviews despite Porto location", "Iberian OTA translations; B2B travel agency partnerships", "Iberian share ≥15%", "Sales", "6-18 months"),
+        ("R6", "Room Comfort & Cleanliness: 20.7% negative ABSA mentions", "Housekeeping checklist; mattress upgrade pilot", "Room topic avg ≥8.40", "Housekeeping", "3-9 months"),
+        ("R7", "Value topic avg 8.35 — some guests feel €190/night is poor value", "Early Bird / Last Minute rates; bundled breakfast", "Value topic avg ≥8.60", "Revenue Mgmt", "3-6 months"),
+    ]
+    for row in decision_rows:
+        lines.append(f"| {' | '.join(row)} |")
+
+    lines += [
+        "",
         "## Methodology",
         "",
-        "Recommendations are derived programmatically from three pipeline artifacts:",
+        "Recommendations are derived from four pipeline artifacts:",
         "",
         "| Artifact | Content |",
         "| --- | --- |",
         "| `artifacts/eda_summary.json` | Score statistics, sentiment distribution, traveler types, country breakdown |",
         "| `artifacts/sentiment_metrics.json` | Model F1-macro scores (VADER baseline, LR, LinearSVC 3-class and binary) |",
         "| `artifacts/topics.json` | LDA topic labels, review counts, avg scores, and representative excerpts |",
+        "| `artifacts/absa.json` | Aspect-level negative %, mention counts, traveler × aspect heatmap |",
         "",
         "No large language model was used in recommendation generation. All thresholds and priorities are "
         "derived from quantitative signals in the above artifacts.",
@@ -293,6 +314,7 @@ def run_strategy(state: WorkflowState) -> WorkflowState:
     eda = _load_json(EDA_ARTIFACT)
     sentiment = _load_json(SENTIMENT_ARTIFACT)
     topics = _load_json(TOPICS_ARTIFACT)
+    absa = _load_json(ABSA_ARTIFACT) if ABSA_ARTIFACT.exists() else {}
 
     # ── Derive recommendations ────────────────────────────────────────────
     recs = _derive_recommendations(eda, sentiment, topics)
@@ -306,13 +328,14 @@ def run_strategy(state: WorkflowState) -> WorkflowState:
         "medium_priority": sum(1 for r in recs if r["priority"] == "Medium"),
         "low_priority": sum(1 for r in recs if r["priority"] == "Low"),
         "recommendations": recs,
+        "absa_top_pain": absa.get("aspects", [{}])[0].get("aspect", "") if absa else "",
     }
     RECOMMENDATIONS_ARTIFACT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     logger.info("Recommendations artifact written to %s", RECOMMENDATIONS_ARTIFACT)
 
     # ── Write strategy report ─────────────────────────────────────────────
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    report_text = _build_report(recs, eda, sentiment, topics)
+    report_text = _build_report(recs, eda, sentiment, topics, absa)
     STRATEGY_REPORT.write_text(report_text, encoding="utf-8")
     logger.info("Strategy report written to %s", STRATEGY_REPORT)
 

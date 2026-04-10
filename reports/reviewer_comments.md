@@ -1,10 +1,10 @@
 # Reviewer Comments — Whitepaper Draft
 
 **Document reviewed:** `reports/whitepaper_draft.md`  
-**Word count:** ~1843  
-**Verdict:** **PASS**  
+**Word count:** ~3334  
+**Verdict:** **REVISE**  
 
-> The whitepaper is factually consistent with all pipeline artifacts and structurally complete. 38 strengths identified, 0 minor warnings, 0 errors.
+> The whitepaper contains 4 factual or structural error(s) that must be corrected before publication, plus 0 warnings.
 
 ---
 
@@ -12,16 +12,38 @@
 
 | Category | Count |
 | --- | --- |
-| Errors (must fix) | 0 |
+| Errors (must fix) | 4 |
 | Warnings (should fix) | 0 |
 | Suggestions (consider) | 0 |
-| Strengths | 38 |
+| Strengths | 34 |
 
 ---
 
 ## Errors (Must Fix)
 
-_No errors found._
+### [S001] Structure: Required section missing: 'Sentiment Analysis'
+
+**Severity:** Error  
+**Message:** Required section missing: 'Sentiment Analysis'
+**Detail:** Expected heading: `## 3. Sentiment Analysis`
+
+### [S001] Structure: Required section missing: 'Topic Modelling'
+
+**Severity:** Error  
+**Message:** Required section missing: 'Topic Modelling'
+**Detail:** Expected heading: `## 4. Topic Modelling`
+
+### [S001] Structure: Required section missing: 'Strategic Recommendations'
+
+**Severity:** Error  
+**Message:** Required section missing: 'Strategic Recommendations'
+**Detail:** Expected heading: `## 5. Strategic Recommendations`
+
+### [S001] Structure: Required section missing: 'Conclusions'
+
+**Severity:** Error  
+**Message:** Required section missing: 'Conclusions'
+**Detail:** Expected heading: `## 6. Conclusions`
 
 ---
 
@@ -36,10 +58,6 @@ _No warnings found._
 **Structure**
 - Section present: 'Introduction'
 - Section present: 'Data Overview'
-- Section present: 'Sentiment Analysis'
-- Section present: 'Topic Modelling'
-- Section present: 'Strategic Recommendations'
-- Section present: 'Conclusions'
 - Section present: 'Limitations'
 - Section present: 'Appendix'
 
@@ -50,21 +68,21 @@ _No warnings found._
 - Lowest traveler type ('Family', 7.98/10) correctly cited.
 
 **Sentiment Analysis**
-- Binary F1-macro (0.6548) correctly reported.
-- CV F1-macro (0.7019) correctly cited.
-- VADER baseline (0.4573) correctly cited for comparison.
+- Binary F1-macro (0.6471) correctly reported.
+- CV F1-macro (0.6939) correctly cited.
+- VADER baseline (0.4511) correctly cited for comparison.
 - Label-signal mismatch correctly identified and explained.
 - Class imbalance handling documented.
 
 **Topic Modelling**
-- Topic 'Check-in & WiFi' correctly referenced.
-- Topic 'Facilities & Comfort' correctly referenced.
 - Topic 'Room Comfort & Cleanliness' correctly referenced.
-- Topic 'Location & Convenience' correctly referenced.
 - Topic 'Staff & Service' correctly referenced.
-- Topic 'Value & Overall Experience' correctly referenced.
-- Lowest topic score (7.63) for 'Check-in & WiFi' correctly cited.
-- LDA perplexity (831.94) reported.
+- Topic 'Rooftop Bar & Ambiance' correctly referenced.
+- Topic 'Food & Breakfast' correctly referenced.
+- Topic 'Location & Accessibility' correctly referenced.
+- Topic 'Check-in & WiFi' correctly referenced.
+- Lowest topic score (7.36) for 'Room Comfort & Cleanliness' correctly cited.
+- LDA perplexity (844.65) reported.
 - Multilingual corpus limitation correctly disclosed.
 
 **Recommendations**
@@ -83,7 +101,7 @@ _No warnings found._
 - Limitation correctly disclosed: 'Single-property scope'.
 
 **Appendix**
-- All 16 figure filenames appear in the Appendix.
+- All 20 figure filenames appear in the Appendix.
 
 ---
 
@@ -91,10 +109,10 @@ _No warnings found._
 
 Use this checklist before finalising the whitepaper:
 
-- [x] All error codes resolved
+- [ ] All error codes resolved
 - [x] All warnings reviewed and addressed or documented
 - [x] All 7 recommendations present with KPIs
 - [x] Limitations section complete (3 limitations)
 - [x] All 16 figures listed in Appendix
 - [x] All pipeline artifacts listed in Appendix
-- [x] Factual numbers match pipeline artifacts
+- [ ] Factual numbers match pipeline artifacts

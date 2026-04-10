@@ -13,9 +13,10 @@
 3. Parsed `date` (Month YYYY) → `date_parsed` (YYYY-MM), plus `year` and `month` columns.
 4. Filled `pos_review` and `neg_review` nulls with empty string.
 5. Created `full_review_text` = pos_review + ' ' + neg_review (stripped).
-6. Dropped 1 row(s) with empty full_review_text.
-7. Created `sentiment` label from score: ≥8 → positive, 6–7 → neutral, <6 → negative.
-8. Standardised `country` to title case.
+6. Detected review language (`review_language` column); translated 109 non-English reviews to English via Google Translate. Languages found: {'en': 891, 'es': 30, 'it': 20, 'fr': 17, 'pt': 16, 'de': 6, 'pl': 4, 'af': 2, 'sv': 2, 'ca': 2, 'nl': 2, 'da': 1, 'no': 1, 'cy': 1, 'vi': 1, 'zh-cn': 1, 'ro': 1, 'cs': 1, 'sk': 1}.
+7. Dropped 1 row(s) with empty full_review_text.
+8. Created `sentiment` label from score: ≥8 → positive, 6–7 → neutral, <6 → negative.
+9. Standardised `country` to title case.
 
 ## Final schema
 
@@ -35,6 +36,7 @@
 | year | Int64 | 0 | 0.0% |
 | month | Int64 | 0 | 0.0% |
 | full_review_text | str | 0 | 0.0% |
+| review_language | str | 0 | 0.0% |
 | sentiment | str | 0 | 0.0% |
 
 ## Score distribution
@@ -51,6 +53,30 @@
 | positive | 779 (78.0%) |
 | neutral | 156 (15.6%) |
 | negative | 64 (6.4%) |
+
+## Review language distribution
+
+| Language code | Count | Share |
+| --- | --- | --- |
+| en | 890 | 89.1% |
+| es | 30 | 3.0% |
+| it | 20 | 2.0% |
+| fr | 17 | 1.7% |
+| pt | 16 | 1.6% |
+| de | 6 | 0.6% |
+| pl | 4 | 0.4% |
+| af | 2 | 0.2% |
+| sv | 2 | 0.2% |
+| ca | 2 | 0.2% |
+| nl | 2 | 0.2% |
+| da | 1 | 0.1% |
+| no | 1 | 0.1% |
+| cy | 1 | 0.1% |
+| vi | 1 | 0.1% |
+| zh-cn | 1 | 0.1% |
+| ro | 1 | 0.1% |
+| cs | 1 | 0.1% |
+| sk | 1 | 0.1% |
 
 ## Review text coverage
 
