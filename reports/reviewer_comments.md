@@ -1,7 +1,7 @@
 # Reviewer Comments — Whitepaper Draft
 
 **Document reviewed:** `reports/whitepaper_draft.md`  
-**Word count:** ~3931  
+**Word count:** ~4056  
 **Verdict:** **PASS**  
 
 > The whitepaper is factually consistent with all pipeline artifacts and structurally complete. 38 strengths identified, 0 minor warnings, 0 errors.

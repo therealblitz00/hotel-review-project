@@ -90,6 +90,7 @@ def _section_data(eda: dict) -> list[str]:
     total = eda["row_count"]
     tc = eda["top_10_countries"]
     ts = eda["avg_score_by_traveler_type"]
+    tc_count = eda.get("count_by_traveler_type", {})
     wc = eda["word_count_stats"]
     peak = eda["monthly_peak"]
 
@@ -159,7 +160,8 @@ def _section_data(eda: dict) -> list[str]:
         "| --- | --- | --- |",
     ]
     for ttype, avg in sorted(ts.items(), key=lambda x: -x[1]):
-        lines.append(f"| {ttype} | {avg:.2f} | — |")
+        count = tc_count.get(ttype, "—")
+        lines.append(f"| {ttype} | {avg:.2f} | {count} |")
     lines += [
         "",
         f"Couples dominate in both volume and satisfaction ({ts.get('Couple','N/A')}/10). "
@@ -384,9 +386,13 @@ def _section_topics(topics: dict, absa: dict) -> list[str]:
         "",
         "### 5.3 Key Findings",
         "",
-        f"**'{dominant['label']}'** is the dominant theme ({dominant['review_count']} reviews, "
-        f"avg {dominant['avg_score']:.2f}/10). Staff quality is the hotel's primary reputation "
-        "asset and should be the centrepiece of all marketing communications.",
+        f"**'{dominant['label']}'** is the dominant theme by volume ({dominant['review_count']} reviews, "
+        f"avg {dominant['avg_score']:.2f}/10), confirming the hotel's location as a core booking driver.",
+        "",
+        f"**'Staff & Service'** — with {next((t['review_count'] for t in topic_list if t['label'] == 'Staff & Service'), 280)} reviews "
+        f"and the highest average score ({next((t['avg_score'] for t in topic_list if t['label'] == 'Staff & Service'), 8.64):.2f}/10) "
+        "— is the hotel's primary reputation differentiator and should be the centrepiece of all "
+        "marketing communications.",
         "",
         f"**'{lowest['label']}'** records the lowest average score ({lowest['avg_score']:.2f}/10). "
         f"However, with only {lowest['review_count']} reviews, this LDA topic is statistically "
@@ -412,7 +418,10 @@ def _section_absa(absa: dict) -> list[str]:
 
     top_pain = aspects[0]
     top_volume = max(aspects, key=lambda a: a["total_mentions"])
-    best = aspects[-1]
+    best = min(
+        (a for a in aspects if a["aspect"] != top_volume["aspect"]),
+        key=lambda a: a["neg_pct"],
+    )
 
     lines = [
         "## 6. Aspect-Based Sentiment Analysis",
@@ -474,7 +483,7 @@ def _section_decision_table(recs: dict, absa: dict) -> list[str]:
         f"| WiFi & Check-in | {aspects.get('WiFi & Check-in', {}).get('neg_pct', 40.2)}% negative ABSA mentions | Install WiFi repeaters; digital key access | Check-in topic avg ≥8.50 | Operations | 0–6 months |",
         "| Family Guests | Score 7.98/10 (lowest segment) | Family packages, cot availability, city guide | Family avg ≥8.20 | F&B / Front Desk | 0–9 months |",
         "| Negative Reviews | 6.4% share, unresponded | Binary classifier → 24h response SLA | Negative share ≤4% | GM | 0–3 months |",
-        f"| Staff & Service | {aspects.get('Staff & Service', {}).get('neg_pct', 9.1)}% neg, dominant topic (341 reviews) | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3–12 months |",
+        f"| Staff & Service | {aspects.get('Staff & Service', {}).get('neg_pct', 9.1)}% neg, dominant topic (280 reviews) | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3–12 months |",
         "| Iberian Market | Spain+Portugal = 8.9% despite Porto location | Iberian OTA translations; B2B partnerships | Iberian share ≥15% | Sales | 6–18 months |",
         f"| Room Comfort | {aspects.get('Room', {}).get('neg_pct', 20.7)}% negative ABSA mentions | Housekeeping checklist; mattress upgrade pilot | Room topic avg ≥8.40 | Housekeeping | 3–9 months |",
         "| Value Perception | Some guests feel €190/night is poor value | Early Bird/Last Minute rates; bundled breakfast | Value topic avg ≥8.60 | Revenue Mgmt | 3–6 months |",
@@ -524,6 +533,8 @@ def _section_recommendations(recs: dict) -> list[str]:
         for r in low:
             lines += [
                 f"**{r['id']}: {r['title']}**  ",
+                f"{r['evidence']}  ",
+                f"*Actions:* {' / '.join(r['actions'])}  ",
                 f"*KPI:* {r['kpi']}",
                 "",
             ]

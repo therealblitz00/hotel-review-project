@@ -127,7 +127,7 @@ def _derive_recommendations(eda: dict, sentiment: dict, topics: dict, absa: dict
             f"Unaddressed negative reviews on Booking.com directly suppress ranking and conversion."
         ),
         "actions": [
-            "Deploy the trained binary sentiment model to auto-flag incoming reviews with score < 6.",
+            "Deploy the trained binary sentiment model to auto-flag incoming non-positive reviews (score < 8) within minutes of publication.",
             "Set a 24-hour SLA for management responses to flagged reviews with personalised, non-template replies.",
             "Conduct monthly root-cause analysis on negative reviews and feed findings into operational briefings.",
         ],

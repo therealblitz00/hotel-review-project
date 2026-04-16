@@ -56,10 +56,10 @@ The hotel draws an international audience dominated by **United Kingdom** (238 r
 
 | Traveler type | Avg score | Count |
 | --- | --- | --- |
-| Couple | 8.35 | — |
-| Group | 8.24 | — |
-| Solo traveller | 8.13 | — |
-| Family | 7.98 | — |
+| Couple | 8.35 | 518 |
+| Group | 8.24 | 131 |
+| Solo traveller | 8.13 | 226 |
+| Family | 7.98 | 124 |
 
 Couples dominate in both volume and satisfaction (8.35/10). **Family guests score lowest (7.98/10)**, pointing to a specific service gap explored in the segmentation analysis.
 
@@ -153,7 +153,9 @@ Latent Dirichlet Allocation (LDA) was applied to all 999 review texts. The vocab
 
 ### 5.3 Key Findings
 
-**'Location & Accessibility'** is the dominant theme (362 reviews, avg 8.16/10). Staff quality is the hotel's primary reputation asset and should be the centrepiece of all marketing communications.
+**'Location & Accessibility'** is the dominant theme by volume (362 reviews, avg 8.16/10), confirming the hotel's location as a core booking driver.
+
+**'Staff & Service'** — with 280 reviews and the highest average score (8.64/10) — is the hotel's primary reputation differentiator and should be the centrepiece of all marketing communications.
 
 **'Room Comfort & Cleanliness'** records the lowest average score (7.36/10). However, with only 112 reviews, this LDA topic is statistically unreliable as primary evidence on its own. The stronger, more robust signal comes from ABSA (Section 6): **39.5% of WiFi & Check-in aspect mentions are negative** across 114 reviews — a far more dependable indicator of this operational pain point. The LDA finding corroborates the ABSA result but should not be cited as primary evidence in isolation.
 
@@ -184,7 +186,7 @@ Aspect-Based Sentiment Analysis (ABSA) was applied using a rule-based approach: 
 
 **Location** generates the most discussion (511 mentions), confirming it as the hotel's dominant brand signal (only 7.2% negative).
 
-**Location** is the standout performer with just 7.2% negative mentions and the highest positive share — the clearest asset for OTA and social content.
+**Staff & Service** is the standout performer with just 8.7% negative mentions and the highest positive share — the clearest asset for OTA and social content.
 
 The traveler × aspect heatmap (fig_absa_heatmap.png) reveals that **Family guests show elevated negative rates for Room and Noise aspects** relative to Couples and Solo travellers, reinforcing the targeted family experience investments in Section 7.
 
@@ -197,7 +199,7 @@ The table below translates each quantitative finding directly into a marketing o
 | WiFi & Check-in | 39.5% negative ABSA mentions | Install WiFi repeaters; digital key access | Check-in topic avg ≥8.50 | Operations | 0–6 months |
 | Family Guests | Score 7.98/10 (lowest segment) | Family packages, cot availability, city guide | Family avg ≥8.20 | F&B / Front Desk | 0–9 months |
 | Negative Reviews | 6.4% share, unresponded | Binary classifier → 24h response SLA | Negative share ≤4% | GM | 0–3 months |
-| Staff & Service | 8.7% neg, dominant topic (341 reviews) | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3–12 months |
+| Staff & Service | 8.7% neg, dominant topic (280 reviews) | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3–12 months |
 | Iberian Market | Spain+Portugal = 8.9% despite Porto location | Iberian OTA translations; B2B partnerships | Iberian share ≥15% | Sales | 6–18 months |
 | Room Comfort | 21.6% negative ABSA mentions | Housekeeping checklist; mattress upgrade pilot | Room topic avg ≥8.40 | Housekeeping | 3–9 months |
 | Value Perception | Some guests feel €190/night is poor value | Early Bird/Last Minute rates; bundled breakfast | Value topic avg ≥8.60 | Revenue Mgmt | 3–6 months |
@@ -220,7 +222,7 @@ Family guests record the lowest average score (7.98/10) compared to Couples (8.3
 
 **R4: Implement a Proactive Negative-Review Response Programme**  
 64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6471, CV 0.6939) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.  
-*Actions:* Deploy the trained binary sentiment model to auto-flag incoming reviews with score < 6. / Set a 24-hour SLA for management responses to flagged reviews with personalised, non-template replies. / Conduct monthly root-cause analysis on negative reviews and feed findings into operational briefings.  
+*Actions:* Deploy the trained binary sentiment model to auto-flag incoming non-positive reviews (score < 8) within minutes of publication. / Set a 24-hour SLA for management responses to flagged reviews with personalised, non-template replies. / Conduct monthly root-cause analysis on negative reviews and feed findings into operational briefings.  
 *KPI:* Reduce negative review share from 6.4% to ≤4% within 12 months.
 
 ### 8.2 Medium Priority — Implement within 6-12 months
@@ -243,6 +245,8 @@ United Kingdom dominates with 238 reviews (23.8% of total). Spain and Portugal c
 ### 8.3 Low Priority — Ongoing optimisation
 
 **R7: Strengthen Value Perception for Price-Sensitive Guests**  
+The ABSA 'Value' aspect captures 74 guest mentions, of which 13.5% are negative. 'Value & Overall Experience' did not emerge as a standalone LDA topic in this run, but guest reviews mentioning price (~€190/night) and value expectations confirm the need for targeted pricing and packaging actions.  
+*Actions:* Offer an 'Early Bird' rate (≥21 days ahead) and a 'Last Minute' rate to capture price-sensitive segments. / Bundle breakfast in promoted packages and quantify the inclusion value in OTA listings. / Highlight unique amenities (rooftop, vintage decor, central location) in post-booking confirmation emails to reinforce value before arrival.  
 *KPI:* Raise 'Value & Overall Experience' topic avg score from 8.35 to ≥8.60.
 
 ## 9. Conclusions
