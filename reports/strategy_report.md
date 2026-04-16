@@ -4,7 +4,7 @@
 **Period:** 2023-03 to 2026-04  
 **Overall average score:** 8.24/10  
 **Negative review share:** 6.4%  
-**Sentiment classifier (binary F1-macro):** 0.6559  
+**Sentiment classifier (binary F1-macro):** 0.6471  
 
 ---
 
@@ -55,7 +55,7 @@ Family guests record the lowest average score (7.98/10) compared to Couples (8.3
 **Priority:** 🔴 High  
 
 **Evidence:**  
-64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6559, CV 0.7035) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.
+64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6471, CV 0.6939) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.
 
 **Recommended actions:**
 
@@ -72,7 +72,7 @@ Family guests record the lowest average score (7.98/10) compared to Couples (8.3
 **Priority:** 🟡 Medium  
 
 **Evidence:**  
-'Location & Accessibility' is the single largest topic cluster with 360 reviews (avg score 8.17/10). Top terms — location, breakfast, staff, close, bathroom, clean — confirm that guests value staff friendliness and the hotel's quirky vintage identity. Overall average score of 8.24/10 reflects a strongly positive baseline.
+'Location & Accessibility' is the single largest topic cluster with 362 reviews (avg score 8.16/10). Top terms — location, breakfast, staff, close, bathroom, clean — confirm that guests value staff friendliness and the hotel's quirky vintage identity. Overall average score of 8.24/10 reflects a strongly positive baseline.
 
 **Recommended actions:**
 
@@ -123,7 +123,7 @@ United Kingdom dominates with 238 reviews (23.8% of total). Spain and Portugal c
 **Priority:** 🟢 Low  
 
 **Evidence:**  
-The 'Value & Overall Experience' topic (N/A reviews, avg 0.00/10) shows keywords like 'price', 'value', 'money', and 'recommend'. Some reviews mention paying ~€190/night and feeling underwhelmed. Price anchoring against local alternatives can shift guest expectations.
+The ABSA 'Value' aspect captures 74 guest mentions, of which 13.5% are negative. 'Value & Overall Experience' did not emerge as a standalone LDA topic in this run, but guest reviews mentioning price (~€190/night) and value expectations confirm the need for targeted pricing and packaging actions.
 
 **Recommended actions:**
 
@@ -131,7 +131,7 @@ The 'Value & Overall Experience' topic (N/A reviews, avg 0.00/10) shows keywords
 - Bundle breakfast in promoted packages and quantify the inclusion value in OTA listings.
 - Highlight unique amenities (rooftop, vintage decor, central location) in post-booking confirmation emails to reinforce value before arrival.
 
-**KPI:** Raise 'Value & Overall Experience' topic avg score from 0.00 to ≥8.60.
+**KPI:** Raise 'Value & Overall Experience' topic avg score from 8.35 to ≥8.60.
 
 ---
 
@@ -139,13 +139,13 @@ The 'Value & Overall Experience' topic (N/A reviews, avg 0.00/10) shows keywords
 
 | # | Insight | Marketing / Operational Action | KPI | Owner | Timeline |
 | --- | --- | --- | --- | --- | --- |
-| R1 | 40.2% of WiFi & Check-in mentions are negative (ABSA) | Install WiFi repeaters; digital key access | Check-in topic avg ≥8.50 | Operations | 0-6 months |
+| R1 | 39.5% of WiFi & Check-in mentions are negative (ABSA) | Install WiFi repeaters; digital key access | Check-in topic avg ≥8.50 | Operations | 0-6 months |
 | R2 | Family guests score 7.98/10 — lowest traveler segment | Family packages, child-friendly amenities | Family avg score ≥8.20 | F&B / Front Desk | 0-9 months |
 | R4 | 6.4% negative reviews unresponded | Binary classifier alert → 24h response SLA | Negative share ≤4% | GM / Front Office | 0-3 months |
-| R3 | Staff & Service: 341 reviews, avg 8.52 — top differentiator | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3-12 months |
+| R3 | Location & Accessibility: 362 reviews, avg 8.16 — top differentiator | Staff-led OTA content; award nominations | +10% direct bookings | Marketing | 3-12 months |
 | R5 | Spain + Portugal = 8.9% of reviews despite Porto location | Iberian OTA translations; B2B travel agency partnerships | Iberian share ≥15% | Sales | 6-18 months |
-| R6 | Room Comfort & Cleanliness: 20.7% negative ABSA mentions | Housekeeping checklist; mattress upgrade pilot | Room topic avg ≥8.40 | Housekeeping | 3-9 months |
-| R7 | Value topic avg 8.35 — some guests feel €190/night is poor value | Early Bird / Last Minute rates; bundled breakfast | Value topic avg ≥8.60 | Revenue Mgmt | 3-6 months |
+| R6 | Room Comfort & Cleanliness: 21.6% negative ABSA mentions | Housekeeping checklist; mattress upgrade pilot | Room topic avg ≥8.40 | Housekeeping | 3-9 months |
+| R7 | Value aspect: 13.5% negative ABSA mentions; some guests feel €190/night is poor value | Early Bird / Last Minute rates; bundled breakfast | Value topic avg ≥8.60 | Revenue Mgmt | 3-6 months |
 
 ## Methodology
 

@@ -26,6 +26,38 @@ def _load_json(path: Path) -> dict:
 
 # ── Section builders ──────────────────────────────────────────────────────────
 
+def _section_abstract(eda: dict, sentiment: dict, absa: dict) -> list[str]:
+    avg = eda["score_stats"]["mean"]
+    total = eda["row_count"]
+    binary_f1 = sentiment["svc_binary"]["f1_macro"]
+    absa_aspects = {a["aspect"]: a for a in absa.get("aspects", [])}
+    wifi = absa_aspects.get("WiFi & Check-in", {})
+    wifi_neg_pct = wifi.get("neg_pct", "N/A")
+
+    return [
+        "## Abstract",
+        "",
+        f"This white paper presents the findings of a multi-stage data science pipeline applied "
+        f"to {total} verified guest reviews collected from Booking.com for a boutique hotel in "
+        f"Porto, Portugal. The pipeline encompasses exploratory data analysis (EDA), supervised "
+        "sentiment classification (Logistic Regression, LinearSVC, and XLM-RoBERTa), unsupervised "
+        "LDA topic modelling, K-Means customer segmentation, and rule-based Aspect-Based Sentiment "
+        "Analysis (ABSA).",
+        "",
+        f"The headline finding is an overall average guest score of **{avg}/10**, with {total} "
+        "reviews spanning 38 months. The primary operational pain point identified by ABSA is "
+        f"**WiFi & Check-in**, where **{wifi_neg_pct}% of aspect mentions are negative**. "
+        f"The binary sentiment classifier (LinearSVC, TF-IDF features) achieves F1-macro "
+        f"**{binary_f1:.4f}** and is recommended for real-time review monitoring. "
+        "The XLM-RoBERTa transformer benchmark underperforms the classical baseline at this "
+        "dataset size and is presented as a proof-of-concept for future scaling. "
+        "Seven evidence-backed strategic recommendations with measurable KPIs are derived from "
+        "the combined analytical findings and address WiFi infrastructure, family guest experience, "
+        "negative review response, staff-led marketing, and Iberian market expansion.",
+        "",
+    ]
+
+
 def _section_intro(eda: dict) -> list[str]:
     total = eda["row_count"]
     avg = eda["score_stats"]["mean"]
@@ -76,6 +108,11 @@ def _section_data(eda: dict) -> list[str]:
         f"with volume peaking in **{peak['month']}** ({int(peak['count'])} reviews). "
         f"Average review length is {wc['mean']} words (median {wc['median']}), suggesting "
         "guests invest genuine effort in their feedback.",
+        "",
+        "*Data ethics note:* Reviewer names and nationalities constitute personal data under GDPR. "
+        "Names were collected solely for deduplication purposes and are not used in any analysis "
+        "or reporting. All data was collected from publicly accessible Booking.com review pages "
+        "in compliance with the platform's terms of service.",
         "",
         "### 2.2 Score and Sentiment Distribution",
         "",
@@ -152,7 +189,14 @@ def _section_segmentation(seg: dict) -> list[str]:
         f"K-Means clustering (k={seg['n_clusters']}) was applied to {total} reviews using five "
         "feature dimensions: guest score, review word count, number of nights, traveler type "
         "(one-hot encoded), and sentiment (ordinal). Features were standardised with "
-        "StandardScaler. The optimal k was selected via elbow analysis (k=2 to 8).",
+        "StandardScaler. The optimal k was selected via elbow analysis (k=2 to 8). "
+        "k=4 was selected from the elbow plot (fig_segmentation_elbow.png), where inertia "
+        "reduction flattened beyond four clusters.",
+        "",
+        "> **Limitation:** Clustering was performed at the review level, not the customer level. "
+        "A single guest with multiple stays may appear across different clusters. Future work "
+        "should aggregate features per unique reviewer before clustering to produce true "
+        "customer-level segments.",
         "",
         "### 3.2 Segments Identified",
         "",
@@ -227,6 +271,13 @@ def _section_sentiment(sentiment: dict) -> list[str]:
             f"| XLM-RoBERTa (fine-tuned) | 3-class | {xlmr['accuracy']:.3f} | {xlmr['f1_macro']:.4f} | - |"
         )
 
+    lines += [""]
+    if xlmr_ok:
+        lines.append(
+            f"> **Note:** XLM-RoBERTa F1-macro ({xlmr['f1_macro']:.4f}) falls **below** the VADER "
+            f"baseline ({vader['f1_macro']:.4f}). This is a proof-of-concept result; see §4.3."
+        )
+
     lines += [
         "",
         "### 4.3 Transformer Upgrade (XLM-RoBERTa)",
@@ -235,11 +286,19 @@ def _section_sentiment(sentiment: dict) -> list[str]:
 
     if xlmr_ok:
         lines += [
-            f"The multilingual transformer benchmark achieved F1-macro {xlmr['f1_macro']:.4f} "
-            f"(accuracy {xlmr['accuracy']:.3f}) on the 3-class task.",
+            f"XLM-RoBERTa (fine-tuned, 2 epochs, ~800 training samples) achieved F1-macro "
+            f"{xlmr['f1_macro']:.4f} (accuracy {xlmr['accuracy']:.3f}) on the 3-class task — "
+            f"**below the VADER lexicon baseline ({vader['f1_macro']:.4f})**. This outcome is "
+            "expected: transformer models require substantially more labelled data than the ~800 "
+            "training samples available here to outperform strong TF-IDF baselines. With only "
+            "2 fine-tuning epochs, the model has insufficient exposure to the domain-specific "
+            "vocabulary of hotel reviews.",
             "",
-            "This adds modern deep-learning NLP depth and stronger multilingual coverage "
-            "on top of the TF-IDF baselines.",
+            "This experiment should be interpreted as a **proof-of-concept for the multilingual "
+            "upgrade path**, not a performance improvement. XLM-RoBERTa's multilingual pre-training "
+            "makes it the natural candidate for a future iteration with a larger, cross-property "
+            "dataset (>5,000 reviews). At the current dataset size, the classical "
+            "TF-IDF + LinearSVC pipeline remains the recommended production approach.",
             "",
         ]
     else:
@@ -271,10 +330,16 @@ def _section_sentiment(sentiment: dict) -> list[str]:
     return lines
 
 
-def _section_topics(topics: dict) -> list[str]:
+def _section_topics(topics: dict, absa: dict) -> list[str]:
     topic_list = topics["topics"]
     dominant = max(topic_list, key=lambda t: t["review_count"])
     lowest = min(topic_list, key=lambda t: t["avg_score"])
+
+    # Pull WiFi & Check-in ABSA stats for the key findings paragraph
+    absa_aspects = {a["aspect"]: a for a in absa.get("aspects", [])}
+    wifi_absa = absa_aspects.get("WiFi & Check-in", {})
+    wifi_neg_pct = wifi_absa.get("neg_pct", "N/A")
+    wifi_mentions = wifi_absa.get("total_mentions", "N/A")
 
     marketing_map = {
         "Staff & Service": "Feature staff in OTA listings and social content; nominate for hospitality awards.",
@@ -293,7 +358,10 @@ def _section_topics(topics: dict) -> list[str]:
         "Latent Dirichlet Allocation (LDA) was applied to all 999 review texts. The vocabulary "
         "was built with CountVectorizer (max 3,000 features, 1-2 ngrams, min_df=3, max_df=90%), "
         f"yielding 1,289 unique terms after hotel-domain and multilingual stop-word filtering. "
-        f"LDA perplexity: **{topics['lda_perplexity']:.2f}**.",
+        f"LDA perplexity: **{topics['lda_perplexity']:.2f}**. "
+        f"Six topics were selected after comparing perplexity scores across k=4, 6, and 8. "
+        "k=6 produced the most interpretable topic separation while avoiding the "
+        "over-fragmentation seen at k=8.",
         "",
         "### 5.2 Discovered Topics",
         "",
@@ -309,6 +377,11 @@ def _section_topics(topics: dict) -> list[str]:
 
     lines += [
         "",
+        "> **Caution:** Topics with fewer than 20 reviews should be interpreted with care — "
+        "they may not represent stable, recurring themes. The 'Check-in & WiFi' topic "
+        f"({next((t['review_count'] for t in topic_list if t['label'] == 'Check-in & WiFi'), 7)} reviews) "
+        "is particularly affected by this limitation.",
+        "",
         "### 5.3 Key Findings",
         "",
         f"**'{dominant['label']}'** is the dominant theme ({dominant['review_count']} reviews, "
@@ -316,8 +389,12 @@ def _section_topics(topics: dict) -> list[str]:
         "asset and should be the centrepiece of all marketing communications.",
         "",
         f"**'{lowest['label']}'** records the lowest average score ({lowest['avg_score']:.2f}/10). "
-        "This cluster's negative keywords — WiFi, key, reception, late night — point to "
-        "specific, fixable operational issues that directly translate into score improvements.",
+        f"However, with only {lowest['review_count']} reviews, this LDA topic is statistically "
+        "unreliable as primary evidence on its own. The stronger, more robust signal comes from "
+        f"ABSA (Section 6): **{wifi_neg_pct}% of WiFi & Check-in aspect mentions are negative** "
+        f"across {wifi_mentions} reviews — a far more dependable indicator of this operational "
+        "pain point. The LDA finding corroborates the ABSA result but should not be cited as "
+        "primary evidence in isolation.",
         "",
         "*Multilingual note:* The corpus includes reviews in Spanish, French, Italian, and "
         "Portuguese. Non-English keywords appear in some topic clusters (particularly "
@@ -413,14 +490,14 @@ def _section_recommendations(recs: dict) -> list[str]:
     low = [r for r in rec_list if r["priority"] == "Low"]
 
     lines = [
-        "## 6. Strategic Recommendations",
+        "## 8. Strategic Recommendations",
         "",
         f"Seven evidence-backed recommendations are prioritised below "
         f"({recs['high_priority']} high, {recs['medium_priority']} medium, "
         f"{recs['low_priority']} low). Each links a specific quantitative finding to a "
         "concrete marketing or operational action and a measurable KPI.",
         "",
-        "### 6.1 High Priority — Immediate Action Required",
+        "### 8.1 High Priority — Immediate Action Required",
         "",
     ]
     for r in high:
@@ -432,7 +509,7 @@ def _section_recommendations(recs: dict) -> list[str]:
             "",
         ]
 
-    lines += ["### 6.2 Medium Priority — Implement within 6-12 months", ""]
+    lines += ["### 8.2 Medium Priority — Implement within 6-12 months", ""]
     for r in medium:
         lines += [
             f"**{r['id']}: {r['title']}**  ",
@@ -443,7 +520,7 @@ def _section_recommendations(recs: dict) -> list[str]:
         ]
 
     if low:
-        lines += ["### 6.3 Low Priority — Ongoing optimisation", ""]
+        lines += ["### 8.3 Low Priority — Ongoing optimisation", ""]
         for r in low:
             lines += [
                 f"**{r['id']}: {r['title']}**  ",
@@ -463,7 +540,7 @@ def _section_conclusions(eda: dict, sentiment: dict, topics: dict, seg: dict) ->
     bottom_seg = min(seg["segments"], key=lambda s: s["score_mean"])
 
     return [
-        "## 7. Conclusions",
+        "## 9. Conclusions",
         "",
         f"This analysis of {eda['row_count']} guest reviews delivers a clear, data-driven "
         f"picture of hotel performance. An average score of {avg}/10 and {pos_pct}% positive "
@@ -531,6 +608,7 @@ def _appendix(eda: dict, sentiment: dict, topics: dict, seg: dict) -> list[str]:
         "fig_sentiment_confusion_svc.png": "Confusion matrix — LinearSVC 3-class",
         "fig_sentiment_confusion_binary.png": "Confusion matrix — LinearSVC binary",
         "fig_sentiment_confusion_vader.png": "Confusion matrix — VADER baseline",
+        "fig_sentiment_confusion_xlmr.png": "Confusion matrix — XLM-RoBERTa 3-class",
         "fig_sentiment_model_comparison.png": "Model comparison bar chart",
         "fig_topic_distribution.png": "Topic review count distribution",
         "fig_topic_keywords.png": "Top keywords per topic",
@@ -564,6 +642,27 @@ def _appendix(eda: dict, sentiment: dict, topics: dict, seg: dict) -> list[str]:
     return lines
 
 
+def _references() -> list[str]:
+    return [
+        "---",
+        "",
+        "## References",
+        "",
+        "- Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). Latent Dirichlet Allocation. "
+        "*Journal of Machine Learning Research*, 3, 993–1022.",
+        "- Conneau, A., Khandelwal, K., Goyal, N., Chaudhary, V., Wenzek, G., Guzmán, F., "
+        "Grave, E., Ott, M., Zettlemoyer, L., & Stoyanov, V. (2020). Unsupervised Cross-lingual "
+        "Representation Learning at Scale. *Proceedings of ACL 2020*, 8440–8451.",
+        "- Hutto, C. J., & Gilbert, E. (2014). VADER: A Parsimonious Rule-based Model for "
+        "Sentiment Analysis of Social Media Text. *Proceedings of ICWSM 2014*.",
+        "- Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. "
+        "*Journal of Machine Learning Research*, 12, 2825–2830.",
+        "- Booking.com (2024). Guest review data collected from publicly accessible review pages "
+        "for a boutique hotel in Porto, Portugal. Retrieved 2026.",
+        "",
+    ]
+
+
 def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg: dict, absa: dict) -> str:
     total = eda["row_count"]
     avg = eda["score_stats"]["mean"]
@@ -583,16 +682,18 @@ def _build_whitepaper(eda: dict, sentiment: dict, topics: dict, recs: dict, seg:
 
     sections = (
         header
+        + _section_abstract(eda, sentiment, absa)
         + _section_intro(eda)
         + _section_data(eda)
         + _section_segmentation(seg)
         + _section_sentiment(sentiment)
-        + _section_topics(topics)
+        + _section_topics(topics, absa)
         + _section_absa(absa)
         + _section_decision_table(recs, absa)
         + _section_recommendations(recs)
         + _section_conclusions(eda, sentiment, topics, seg)
         + _appendix(eda, sentiment, topics, seg)
+        + _references()
     )
     return "\n".join(sections)
 

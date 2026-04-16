@@ -13,7 +13,7 @@
 3. Parsed `date` (Month YYYY) → `date_parsed` (YYYY-MM), plus `year` and `month` columns.
 4. Filled `pos_review` and `neg_review` nulls with empty string.
 5. Created `full_review_text` = pos_review + ' ' + neg_review (stripped).
-6. Detected review language (`review_language` column); translated 108 non-English reviews to English via Google Translate. Languages found: {'en': 892, 'es': 30, 'it': 20, 'fr': 18, 'pt': 16, 'de': 5, 'pl': 4, 'nl': 2, 'af': 2, 'sv': 2, 'da': 1, 'cy': 1, 'no': 1, 'zh-cn': 1, 'ca': 1, 'ro': 1, 'cs': 1, 'el': 1, 'sk': 1}.
+6. Detected review language (`review_language` column); translated 109 non-English reviews to English via Google Translate. Languages found: {'en': 891, 'es': 30, 'it': 20, 'fr': 18, 'pt': 16, 'de': 5, 'pl': 4, 'nl': 3, 'sv': 2, 'af': 2, 'da': 1, 'cy': 1, 'vi': 1, 'zh-cn': 1, 'ca': 1, 'ro': 1, 'cs': 1, 'el': 1, 'sk': 1}.
 7. Dropped 1 row(s) with empty full_review_text.
 8. Created `sentiment` label from score: ≥8 → positive, 6–7 → neutral, <6 → negative.
 9. Standardised `country` to title case.
@@ -58,19 +58,19 @@
 
 | Language code | Count | Share |
 | --- | --- | --- |
-| en | 891 | 89.2% |
+| en | 890 | 89.1% |
 | es | 30 | 3.0% |
 | it | 20 | 2.0% |
 | fr | 18 | 1.8% |
 | pt | 16 | 1.6% |
 | de | 5 | 0.5% |
 | pl | 4 | 0.4% |
-| nl | 2 | 0.2% |
-| af | 2 | 0.2% |
+| nl | 3 | 0.3% |
 | sv | 2 | 0.2% |
+| af | 2 | 0.2% |
 | da | 1 | 0.1% |
 | cy | 1 | 0.1% |
-| no | 1 | 0.1% |
+| vi | 1 | 0.1% |
 | zh-cn | 1 | 0.1% |
 | ca | 1 | 0.1% |
 | ro | 1 | 0.1% |

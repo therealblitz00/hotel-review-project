@@ -4,18 +4,18 @@
 **Reviews:** 999  
 **Method:** Latent Dirichlet Allocation (LDA), 6 topics  
 **Vocabulary:** 1311 terms (CountVectorizer, 1–2 ngrams, min_df=3, max_df=90%)  
-**LDA perplexity:** 843.86  
+**LDA perplexity:** 844.65  
 
 ## Topics discovered
 
 | # | Topic label | Reviews | Avg score | Top keywords |
 | --- | --- | --- | --- | --- |
 | 1 | Room Comfort & Cleanliness | 112 | 7.36 | parking, location, check, old, bed, small |
-| 2 | Staff & Service | 280 | 8.62 | staff, location, friendly, clean, helpful, breakfast |
+| 2 | Staff & Service | 280 | 8.64 | staff, location, friendly, helpful, clean, breakfast |
 | 3 | Rooftop Bar & Ambiance | 19 | 8.47 | pillows, design, comfort, doors, extremely, like |
-| 4 | Food & Breakfast | 221 | 8.31 | location, breakfast, staff, excellent, perfect, porto |
-| 5 | Location & Accessibility | 360 | 8.17 | location, breakfast, staff, close, bathroom, clean |
-| 6 | Check-in & WiFi | 7 | 7.43 | hear, people, dirty, charge, available, buy |
+| 4 | Food & Breakfast | 219 | 8.32 | location, breakfast, staff, excellent, perfect, porto |
+| 5 | Location & Accessibility | 362 | 8.16 | location, breakfast, staff, close, bathroom, clean |
+| 6 | Check-in & WiFi | 7 | 7.43 | hear, people, dirty, charged, buy, available |
 
 ## Topic details
 
@@ -29,15 +29,15 @@
 
 > "Perfect location, clean, and cheap. Booked a "Budget Double Room" for one night, which clearly states it has one double bed. Instead I was given a room with two (quite) small single beds. When I asked..."
 
-> "Great location right downtown. Room and bathroom was outstanding. Bed was very comfortable. Breakfast was very good. Parking deal with hotel and parking lot was not clearly understood by both parties...."
+> "Property is not easily accessed by vehicle, I attended on motorcycle and traffic and location is terrible The property had taken a 104.00 deposit and I still had to pay the full amount on arrival with..."
 
-> "The decoration is dated but fun and with character. Breakfast was fine and had everything we needed. There’s NO PARKING. My search had a filter for places with parking only, and this hotel showed as a..."
+> "Great location right downtown. Room and bathroom was outstanding. Bed was very comfortable. Breakfast was very good. Parking deal with hotel and parking lot was not clearly understood by both parties...."
 
 ### 2. Staff & Service
 
-**Reviews:** 280  |  **Avg score:** 8.62
+**Reviews:** 280  |  **Avg score:** 8.64
 
-**Top keywords:** staff, location, friendly, clean, helpful, breakfast, staff friendly, friendly staff, friendly helpful, comfortable, quirky, excellent
+**Top keywords:** staff, location, friendly, helpful, clean, breakfast, staff friendly, friendly staff, friendly helpful, comfortable, quirky, excellent
 
 **Representative reviews:**
 
@@ -63,7 +63,7 @@
 
 ### 4. Food & Breakfast
 
-**Reviews:** 221  |  **Avg score:** 8.31
+**Reviews:** 219  |  **Avg score:** 8.32
 
 **Top keywords:** location, breakfast, staff, excellent, perfect, porto, time, coffee, location perfect, beds, day, excellent location
 
@@ -77,7 +77,7 @@
 
 ### 5. Location & Accessibility
 
-**Reviews:** 360  |  **Avg score:** 8.17
+**Reviews:** 362  |  **Avg score:** 8.16
 
 **Top keywords:** location, breakfast, staff, close, bathroom, clean, old, restaurants, large, metro, like, station
 
@@ -93,7 +93,7 @@
 
 **Reviews:** 7  |  **Avg score:** 7.43
 
-**Top keywords:** hear, people, dirty, charge, available, buy, sightseeing, hallway, desk, earplugs, pillows, inside
+**Top keywords:** hear, people, dirty, charged, buy, available, charge, sightseeing, hallway, desk, earplugs, pillows
 
 **Representative reviews:**
 
@@ -108,11 +108,11 @@
 | Topic | Positive | Neutral | Negative |
 | --- | --- | --- | --- |
 | Check-in & WiFi | 71.4% | 14.3% | 14.3% |
-| Food & Breakfast | 78.7% | 16.3% | 5.0% |
-| Location & Accessibility | 77.5% | 14.2% | 8.3% |
+| Food & Breakfast | 79.0% | 16.0% | 5.0% |
+| Location & Accessibility | 76.8% | 14.9% | 8.3% |
 | Rooftop Bar & Ambiance | 84.2% | 15.8% | 0.0% |
-| Room Comfort & Cleanliness | 57.1% | 28.6% | 14.3% |
-| Staff & Service | 86.1% | 11.8% | 2.1% |
+| Room Comfort & Cleanliness | 58.0% | 27.7% | 14.3% |
+| Staff & Service | 86.4% | 11.4% | 2.1% |
 
 ## Figures
 
