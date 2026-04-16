@@ -68,8 +68,8 @@ _No warnings found._
 - Lowest traveler type ('Family', 7.98/10) correctly cited.
 
 **Sentiment Analysis**
-- Binary F1-macro (0.6471) correctly reported.
-- CV F1-macro (0.6939) correctly cited.
+- Binary F1-macro (0.6559) correctly reported.
+- CV F1-macro (0.7035) correctly cited.
 - VADER baseline (0.4511) correctly cited for comparison.
 - Label-signal mismatch correctly identified and explained.
 - Class imbalance handling documented.
@@ -82,7 +82,7 @@ _No warnings found._
 - Topic 'Location & Accessibility' correctly referenced.
 - Topic 'Check-in & WiFi' correctly referenced.
 - Lowest topic score (7.36) for 'Room Comfort & Cleanliness' correctly cited.
-- LDA perplexity (844.65) reported.
+- LDA perplexity (843.86) reported.
 - Multilingual corpus limitation correctly disclosed.
 
 **Recommendations**

@@ -20,20 +20,14 @@ Thumbs.db
 .vscode/
 
 # Data artifacts
-data/raw/*
-data/interim/*
-data/processed/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
-!data/raw/reviews_raw.csv
-!data/processed/reviews_clean.csv
 
 artifacts/*
 !artifacts/.gitkeep
 
-reports/figures/*
-!reports/figures/.gitkeep
+
 
 # Models
 models/

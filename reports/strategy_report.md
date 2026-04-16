@@ -4,7 +4,7 @@
 **Period:** 2023-03 to 2026-04  
 **Overall average score:** 8.24/10  
 **Negative review share:** 6.4%  
-**Sentiment classifier (binary F1-macro):** 0.6471  
+**Sentiment classifier (binary F1-macro):** 0.6559  
 
 ---
 
@@ -55,7 +55,7 @@ Family guests record the lowest average score (7.98/10) compared to Couples (8.3
 **Priority:** 🔴 High  
 
 **Evidence:**  
-64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6471, CV 0.6939) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.
+64 reviews (6.4% of total) are classified as negative (score < 6). The sentiment classifier (TF-IDF + LinearSVC, binary F1-macro 0.6559, CV 0.7035) can flag non-positive reviews in near-real time. Unaddressed negative reviews on Booking.com directly suppress ranking and conversion.
 
 **Recommended actions:**
 
@@ -72,7 +72,7 @@ Family guests record the lowest average score (7.98/10) compared to Couples (8.3
 **Priority:** 🟡 Medium  
 
 **Evidence:**  
-'Location & Accessibility' is the single largest topic cluster with 362 reviews (avg score 8.16/10). Top terms — location, breakfast, staff, close, bathroom, clean — confirm that guests value staff friendliness and the hotel's quirky vintage identity. Overall average score of 8.24/10 reflects a strongly positive baseline.
+'Location & Accessibility' is the single largest topic cluster with 360 reviews (avg score 8.17/10). Top terms — location, breakfast, staff, close, bathroom, clean — confirm that guests value staff friendliness and the hotel's quirky vintage identity. Overall average score of 8.24/10 reflects a strongly positive baseline.
 
 **Recommended actions:**
 

@@ -1,6 +1,6 @@
 # EDA Report
 
-**Dataset:** `C:\Users\manue\Desktop\mestrado\DAII\hotel-review-project\data\processed\reviews_clean.csv`  
+**Dataset:** `C:\Users\manue\Desktop\mestrado\2025-2026\2Semestre\Data Mining II\hotel-review-project\data\processed\reviews_clean.csv`  
 **Reviews:** 999  
 **Period:** 2023-03 to 2026-04  
 

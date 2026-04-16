@@ -2,7 +2,7 @@
 
 **Method:** VADER compound score on ±12-word keyword windows  
 **Reviews:** 999  
-**Total deduplicated aspect mentions:** 2156  
+**Total deduplicated aspect mentions:** 2155  
 
 ## Overall Aspect Sentiment
 
@@ -14,7 +14,7 @@
 | Breakfast | 314 | 240 | 26 | 48 | 15.3% |
 | Value | 74 | 52 | 12 | 10 | 13.5% |
 | Cleanliness | 176 | 150 | 7 | 19 | 10.8% |
-| Staff & Service | 424 | 355 | 32 | 37 | 8.7% |
+| Staff & Service | 423 | 354 | 32 | 37 | 8.7% |
 | Location | 511 | 401 | 73 | 37 | 7.2% |
 
 ## Key Findings
