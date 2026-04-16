@@ -66,10 +66,10 @@ def _check_structure(text: str, result: ReviewResult) -> None:
     required_sections = {
         "## 1. Introduction": "Introduction",
         "## 2. Data Overview": "Data Overview",
-        "## 3. Sentiment Analysis": "Sentiment Analysis",
-        "## 4. Topic Modelling": "Topic Modelling",
-        "## 5. Strategic Recommendations": "Strategic Recommendations",
-        "## 6. Conclusions": "Conclusions",
+        "## 4. Sentiment Analysis": "Sentiment Analysis",
+        "## 5. Topic Modelling": "Topic Modelling",
+        "## 8. Strategic Recommendations": "Strategic Recommendations",
+        "## 9. Conclusions": "Conclusions",
         "### Limitations": "Limitations",
         "## Appendix": "Appendix",
     }

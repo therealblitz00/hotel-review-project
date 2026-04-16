@@ -1,10 +1,10 @@
 # Reviewer Comments — Whitepaper Draft
 
 **Document reviewed:** `reports/whitepaper_draft.md`  
-**Word count:** ~3334  
-**Verdict:** **REVISE**  
+**Word count:** ~4056  
+**Verdict:** **PASS**  
 
-> The whitepaper contains 4 factual or structural error(s) that must be corrected before publication, plus 0 warnings.
+> The whitepaper is factually consistent with all pipeline artifacts and structurally complete. 38 strengths identified, 0 minor warnings, 0 errors.
 
 ---
 
@@ -12,38 +12,16 @@
 
 | Category | Count |
 | --- | --- |
-| Errors (must fix) | 4 |
+| Errors (must fix) | 0 |
 | Warnings (should fix) | 0 |
 | Suggestions (consider) | 0 |
-| Strengths | 34 |
+| Strengths | 38 |
 
 ---
 
 ## Errors (Must Fix)
 
-### [S001] Structure: Required section missing: 'Sentiment Analysis'
-
-**Severity:** Error  
-**Message:** Required section missing: 'Sentiment Analysis'
-**Detail:** Expected heading: `## 3. Sentiment Analysis`
-
-### [S001] Structure: Required section missing: 'Topic Modelling'
-
-**Severity:** Error  
-**Message:** Required section missing: 'Topic Modelling'
-**Detail:** Expected heading: `## 4. Topic Modelling`
-
-### [S001] Structure: Required section missing: 'Strategic Recommendations'
-
-**Severity:** Error  
-**Message:** Required section missing: 'Strategic Recommendations'
-**Detail:** Expected heading: `## 5. Strategic Recommendations`
-
-### [S001] Structure: Required section missing: 'Conclusions'
-
-**Severity:** Error  
-**Message:** Required section missing: 'Conclusions'
-**Detail:** Expected heading: `## 6. Conclusions`
+_No errors found._
 
 ---
 
@@ -58,6 +36,10 @@ _No warnings found._
 **Structure**
 - Section present: 'Introduction'
 - Section present: 'Data Overview'
+- Section present: 'Sentiment Analysis'
+- Section present: 'Topic Modelling'
+- Section present: 'Strategic Recommendations'
+- Section present: 'Conclusions'
 - Section present: 'Limitations'
 - Section present: 'Appendix'
 
@@ -68,8 +50,8 @@ _No warnings found._
 - Lowest traveler type ('Family', 7.98/10) correctly cited.
 
 **Sentiment Analysis**
-- Binary F1-macro (0.6559) correctly reported.
-- CV F1-macro (0.7035) correctly cited.
+- Binary F1-macro (0.6471) correctly reported.
+- CV F1-macro (0.6939) correctly cited.
 - VADER baseline (0.4511) correctly cited for comparison.
 - Label-signal mismatch correctly identified and explained.
 - Class imbalance handling documented.
@@ -82,7 +64,7 @@ _No warnings found._
 - Topic 'Location & Accessibility' correctly referenced.
 - Topic 'Check-in & WiFi' correctly referenced.
 - Lowest topic score (7.36) for 'Room Comfort & Cleanliness' correctly cited.
-- LDA perplexity (843.86) reported.
+- LDA perplexity (844.65) reported.
 - Multilingual corpus limitation correctly disclosed.
 
 **Recommendations**
@@ -109,10 +91,10 @@ _No warnings found._
 
 Use this checklist before finalising the whitepaper:
 
-- [ ] All error codes resolved
+- [x] All error codes resolved
 - [x] All warnings reviewed and addressed or documented
 - [x] All 7 recommendations present with KPIs
 - [x] Limitations section complete (3 limitations)
 - [x] All 16 figures listed in Appendix
 - [x] All pipeline artifacts listed in Appendix
-- [ ] Factual numbers match pipeline artifacts
+- [x] Factual numbers match pipeline artifacts

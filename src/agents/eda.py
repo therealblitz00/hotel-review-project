@@ -220,6 +220,7 @@ def run_eda(state: WorkflowState) -> WorkflowState:
         "median": float(df["word_count"].median()),
     }
     avg_score_by_traveler = df.groupby("traveler_type")["score"].mean().round(2).to_dict()
+    count_by_traveler = df["traveler_type"].value_counts().to_dict()
     monthly_peak = monthly.loc[monthly["count"].idxmax()]
 
     # ── Key observations ──────────────────────────────────────────────────
@@ -249,6 +250,7 @@ def run_eda(state: WorkflowState) -> WorkflowState:
         "sentiment_distribution": sentiment_counts.to_dict(),
         "top_10_countries": top_countries.to_dict(),
         "avg_score_by_traveler_type": avg_score_by_traveler,
+        "count_by_traveler_type": count_by_traveler,
         "word_count_stats": word_stats,
         "monthly_peak": {"month": monthly_peak["date_parsed"], "count": int(monthly_peak["count"])},
         "figures": figures,
