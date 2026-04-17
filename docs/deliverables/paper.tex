@@ -1,0 +1,509 @@
+% LLNCS LaTeX paper — Springer Proceedings format
+% Enhancing Customer Experience and Brand Perception: Hotel Review NLP Pipeline
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\usepackage{color}
+
+\begin{document}
+
+\title{Enhancing Customer Experience and Brand Perception: Leveraging NLP and Digital Marketing for a Hotel in Porto}
+
+\titlerunning{Hotel Review NLP Pipeline}
+
+\author{
+  Andr\'{e} Pires\inst{1}\and
+  Manuel Sampaio\inst{1}\and
+  Pedro Correia\inst{1}\and
+  Pedro Meireles\inst{1}\and
+  Mi\l{}osz Koz\l{}uk\inst{1}
+}
+
+\authorrunning{A. Pires et al.}
+
+\institute{
+  IADE -- Universidade Europeia, Lisboa, Portugal
+}
+
+\maketitle
+
+%------------------------------------------------------------------
+\begin{abstract}
+This paper presents a multi-stage NLP pipeline applied to 999 verified
+guest reviews collected from Booking.com for a boutique hotel in Porto,
+Portugal. The pipeline encompasses exploratory data analysis, supervised
+sentiment classification, unsupervised Latent Dirichlet Allocation (LDA)
+topic modelling, K-Means customer segmentation, and rule-based
+Aspect-Based Sentiment Analysis (ABSA). The overall average guest score
+is 8.24/10 across 38 months of data. The primary operational pain point
+identified by ABSA is WiFi \& Check-in, where 39.5\% of aspect mentions
+are negative. A binary LinearSVC classifier achieves F1-macro of 0.6471
+(5-fold CV: 0.6939) and is proposed for real-time review monitoring.
+A fine-tuned XLM-RoBERTa transformer is evaluated as a multilingual
+proof-of-concept but underperforms classical baselines at this dataset
+size. Seven evidence-backed strategic recommendations with measurable
+KPIs are derived, addressing WiFi infrastructure, family guest
+experience, negative review response, staff-led marketing, and Iberian
+market expansion.
+
+\keywords{Hotel reviews \and Sentiment analysis \and Topic modelling
+\and Customer segmentation \and ABSA \and NLP \and Digital marketing}
+\end{abstract}
+
+%------------------------------------------------------------------
+\section{Introduction}
+
+Online guest reviews represent one of the richest, most candid sources
+of intelligence available to hospitality operators. Unlike internal
+surveys, they are unprompted, public, and directly influence future
+booking decisions. For a hotel experiencing declining satisfaction scores
+and stagnating brand perception, systematically mining this corpus offers
+both a diagnostic and a strategic compass.
+
+This paper presents the end-to-end findings of a data science pipeline
+applied to \textbf{999 verified guest reviews} collected from
+Booking.com between March 2023 and April 2026. The pipeline---built
+with LangGraph for orchestration and scikit-learn~\cite{scikit-learn}
+for NLP modelling---covers exploratory analysis, supervised sentiment
+classification, unsupervised topic modelling, K-Means customer
+segmentation, and evidence-backed strategic recommendations.
+
+The headline finding is an overall average score of \textbf{8.24/10},
+masking significant variation by traveller segment and topic cluster.
+The following sections unpack that variation and translate it directly
+into marketing and operational actions.
+
+%------------------------------------------------------------------
+\section{Data Collection and Preparation}
+
+\subsection{Scraping and Ingestion}
+
+Reviews were collected programmatically from Booking.com using a
+custom Selenium-based scraper targeting a single boutique property in
+Porto, Portugal. The scraper handles dynamic pagination, modal dialogs,
+and deduplication via content-based fingerprinting. Each review record
+captures: reviewer name, country, room type, number of nights, date of
+stay, traveller type, positive and negative review text, and numerical
+score.
+
+\textit{Data ethics note:} Reviewer names and nationalities constitute
+personal data under GDPR. Names were collected solely for deduplication
+and are not used in any analysis. All data was collected from publicly
+accessible pages in compliance with Booking.com's terms of service
+\cite{booking2026}.
+
+\subsection{Cleaning and Feature Engineering}
+
+After automated cleaning, \textbf{999 reviews} were retained from an
+initial 1,000 (one dropped for empty review text). The pipeline applied:
+date parsing to period strings (YYYY-MM); number-of-nights extraction;
+concatenation of positive and negative text fields into a unified
+\texttt{full\_review\_text} column; language detection with
+\texttt{langdetect} and translation of non-English reviews via Google
+Translate; and derivation of a three-class sentiment label from the
+numerical score (positive: $\geq 8$; neutral: 6--7; negative:
+$< 6$).
+
+%------------------------------------------------------------------
+\section{Exploratory Data Analysis}
+
+\subsection{Score and Sentiment Distribution}
+
+Scores range from 1.0 to 10.0 on Booking.com's scale, with a mean of
+\textbf{8.24} (median 8.0, std 1.68). The distribution is left-skewed:
+the majority of reviewers score the hotel 8 or above
+(Fig.~\ref{fig:score_dist}). Sentiment labels derived from scores
+yield 779 positive (78.0\%), 156 neutral (15.6\%), and 64 negative
+(6.4\%) reviews.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.75\textwidth]{fig_score_distribution.png}
+  \caption{Score frequency distribution across 999 reviews.}
+  \label{fig:score_dist}
+\end{figure}
+
+\subsection{Temporal Trends}
+
+Review volume peaks in March 2026 (86 reviews). Stacked-area analysis
+of monthly sentiment share (Fig.~\ref{fig:sent_time}) reveals a broadly
+stable positive share over 38 months, indicating no systematic
+operational deterioration. Short-term spikes in neutral and negative
+share correlate with periods of higher review volume, suggesting busy
+periods may strain service quality.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig_sentiment_over_time.png}
+  \caption{Monthly sentiment share (stacked area) over 38 months.}
+  \label{fig:sent_time}
+\end{figure}
+
+\subsection{Word Frequency}
+
+Word cloud analysis (Fig.~\ref{fig:wordclouds}) confirms that positive
+reviews centre on \textit{location}, \textit{staff}, \textit{breakfast},
+and \textit{friendly}, while negative reviews surface \textit{noise},
+\textit{small}, \textit{air conditioning}, and \textit{WiFi} as
+recurring pain points.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{fig_wordcloud_positive.png}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{fig_wordcloud_negative.png}
+  \caption{Word clouds for positive reviews (left) and negative reviews (right).}
+  \label{fig:wordclouds}
+\end{figure}
+
+\subsection{Guest Origin and Traveller Mix}
+
+The hotel draws an international audience dominated by the
+\textbf{United Kingdom} (238 reviews, 23.8\%), followed by the United
+States (145) and Ireland (73). Iberian markets (Spain + Portugal: 89
+reviews, 8.9\%) are significantly underrepresented given the hotel's
+Porto location---a strategic gap addressed in Section~\ref{sec:recs}.
+Traveller type scores are shown in Table~\ref{tab:traveller}.
+
+\begin{table}[t]
+\caption{Average Booking.com score by traveller type.}
+\label{tab:traveller}
+\centering
+\begin{tabular}{lrr}
+\toprule
+Traveller type & Avg score & Reviews \\
+\midrule
+Couple         & 8.35 & 519 \\
+Group          & 8.24 & 130 \\
+Solo traveller & 8.13 & 226 \\
+Family         & 7.98 & 124 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------------
+\section{Customer Segmentation}
+
+K-Means clustering ($k=4$) was applied to 999 reviews using five feature
+dimensions: guest score, review word count, number of nights, traveller
+type (one-hot encoded), and sentiment (ordinal). Features were
+standardised with StandardScaler. The value $k=4$ was selected from an
+elbow analysis ($k = 2 \ldots 8$) where inertia reduction flattened
+beyond four clusters.
+
+\textit{Limitation:} Clustering was performed at the review level, not
+the customer level. A single guest with multiple stays may appear across
+different clusters. Future work should aggregate features per unique
+reviewer.
+
+The four segments are summarised in Table~\ref{tab:segments}.
+\textbf{Family Explorers} carry the highest negative share (9.7\%) and
+lowest average score, validating targeted improvements in
+Section~\ref{sec:recs}. \textbf{Romantic Couples}---the largest,
+highest-scoring segment---represent the strongest base for loyalty
+campaigns.
+
+\begin{table}[t]
+\caption{K-Means customer segments ($k=4$).}
+\label{tab:segments}
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Segment            & Size & Share & Avg score & Neg share \\
+\midrule
+Romantic Couples   & 518  & 51.9\% & 8.35 & 5.2\% \\
+Solo Adventurers   & 226  & 22.6\% & 8.13 & 7.1\% \\
+Social Groups      & 131  & 13.1\% & 8.24 & 6.9\% \\
+Family Explorers   & 124  & 12.4\% & 7.98 & 9.7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%------------------------------------------------------------------
+\section{Sentiment Analysis}
+
+\subsection{Models and Approach}
+
+Three classifiers were evaluated against a VADER~\cite{vader2014}
+lexicon baseline across two task formulations: 3-class (positive /
+neutral / negative) and binary (positive vs.\ non-positive). All
+supervised models use TF-IDF features (max 8,000 terms, 1--2 n-grams,
+sublinear TF scaling) with \texttt{class\_weight=`balanced'} to
+compensate for the 78/15.6/6.4\% class imbalance. Evaluation uses
+macro-averaged F1. Cross-validation uses 5-fold stratified K-Fold.
+
+Additionally, \texttt{xlm-roberta-base}~\cite{xlmroberta2020} was
+fine-tuned for 2 epochs as a multilingual benchmark.
+
+\subsection{Results}
+
+Results are shown in Table~\ref{tab:sentiment} and
+Fig.~\ref{fig:model_comparison}. The 3-class macro F1 for LR (0.5293)
+reflects a structural \textit{label-signal mismatch}: review text at
+the score-7/score-8 boundary is linguistically near-identical, making
+the neutral/negative boundary unreliable. Both supervised models
+nonetheless outperform the VADER baseline (0.4511).
+
+\begin{table}[t]
+\caption{Sentiment model results. CV F1 uses 5-fold stratified K-Fold.}
+\label{tab:sentiment}
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Model                     & Task   & Accuracy & F1-macro & CV F1-macro \\
+\midrule
+VADER (baseline)          & 3-class & 0.715 & 0.4511 & --- \\
+TF-IDF + LR               & 3-class & 0.740 & 0.5293 & $0.4909 \pm 0.039$ \\
+TF-IDF + LinearSVC        & 3-class & 0.800 & 0.5344 & $0.4436 \pm 0.043$ \\
+TF-IDF + LinearSVC        & Binary  & 0.750 & \textbf{0.6471} & $0.6939 \pm 0.011$ \\
+XLM-RoBERTa (fine-tuned)  & 3-class & 0.780 & 0.2921 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.80\textwidth]{fig_sentiment_model_comparison.png}
+  \caption{F1-macro comparison across all sentiment models.}
+  \label{fig:model_comparison}
+\end{figure}
+
+\subsection{XLM-RoBERTa Discussion}
+
+XLM-RoBERTa achieved F1-macro 0.2921---\textbf{below the VADER
+baseline}. This is expected: transformer models require substantially
+more labelled data than the ${\sim}800$ training samples available here.
+With only 2 fine-tuning epochs, the model has insufficient exposure to
+hotel-review vocabulary. This experiment should be interpreted as a
+\textit{proof-of-concept for the multilingual upgrade path}, not a
+performance improvement. At the current dataset size, TF-IDF +
+LinearSVC remains the recommended production approach.
+
+\subsection{Operational Application}
+
+The binary classifier (F1-macro 0.6471, CV 0.6939) is the most
+deployable model. Recommended use: \textbf{auto-flag incoming
+non-positive reviews (score $< 8$) within minutes of publication},
+triggering a 24-hour management response SLA.
+
+%------------------------------------------------------------------
+\section{Topic Modelling}
+
+Latent Dirichlet Allocation (LDA)~\cite{blei2003} was applied to all
+999 review texts. The vocabulary was built with CountVectorizer (max
+3,000 features, 1--2 n-grams, min\_df=3, max\_df=90\%), yielding 1,289
+unique terms after hotel-domain and multilingual stop-word filtering.
+Six topics were selected after comparing perplexity scores across
+$k \in \{4, 6, 8\}$; $k=6$ produced the most interpretable separation
+while avoiding over-fragmentation at $k=8$. Perplexity: \textbf{844.65}.
+
+Discovered topics are shown in Table~\ref{tab:topics} and
+Fig.~\ref{fig:topic_keywords}. \textbf{Location \& Accessibility} is
+the dominant theme by volume (362 reviews). \textbf{Staff \& Service}
+records the highest average score (8.64/10) and is the hotel's primary
+reputation differentiator. \textbf{Room Comfort \& Cleanliness} records
+the lowest score (7.36/10). The \textit{Check-in \& WiFi} topic (7
+reviews) is statistically thin and should be interpreted with caution;
+the ABSA findings in Section~\ref{sec:absa} provide more robust
+evidence for this pain point.
+
+\begin{table}[t]
+\caption{LDA topics discovered ($k=6$). Topics sorted by review count.}
+\label{tab:topics}
+\centering
+\begin{tabular}{lrrp{4.8cm}}
+\toprule
+Topic label                  & Reviews & Avg score & Top keywords \\
+\midrule
+Location \& Accessibility    & 362 & 8.16 & location, breakfast, staff, close, bathroom \\
+Staff \& Service             & 280 & 8.64 & staff, location, friendly, helpful, clean \\
+Food \& Breakfast            & 219 & 8.32 & location, breakfast, staff, excellent, perfect \\
+Room Comfort \& Cleanliness  & 112 & 7.36 & parking, location, check, old, bed \\
+Rooftop Bar \& Ambiance      & 19  & 8.47 & pillows, design, comfort, doors, extremely \\
+Check-in \& WiFi             & 7   & 7.43 & hear, people, dirty, charged, buy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig_topic_keywords.png}
+  \caption{Top keywords per LDA topic (relative weight).}
+  \label{fig:topic_keywords}
+\end{figure}
+
+%------------------------------------------------------------------
+\section{Aspect-Based Sentiment Analysis}
+\label{sec:absa}
+
+ABSA was applied using a rule-based approach: for each of eight
+hotel-domain aspects, keyword occurrences were located in review text
+and a $\pm 12$-word context window was scored with VADER. A total of
+\textbf{2,156 deduplicated aspect mentions} were extracted across all
+999 reviews.
+
+Results are shown in Fig.~\ref{fig:absa_neg} and
+Table~\ref{tab:absa}. \textbf{WiFi \& Check-in} is the highest pain
+point with \textbf{39.5\% negative mentions} across 114 reviews.
+\textbf{Noise} follows at 32.3\%. \textbf{Location} generates the most
+discussion (511 mentions) at only 7.2\% negative---the hotel's clearest
+marketing asset. The traveller $\times$ aspect heatmap
+(Fig.~\ref{fig:absa_heat}) reveals that Family guests show elevated
+negative rates for Room and Noise aspects relative to Couples and Solo
+travellers.
+
+\begin{table}[t]
+\caption{ABSA results sorted by negative mention share.}
+\label{tab:absa}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Aspect           & Mentions & Negative & Neg \% \\
+\midrule
+WiFi \& Check-in & 114 & 45 & 39.5\% \\
+Noise            & 99  & 32 & 32.3\% \\
+Room             & 444 & 96 & 21.6\% \\
+Breakfast        & 314 & 48 & 15.3\% \\
+Value            & 74  & 10 & 13.5\% \\
+Cleanliness      & 176 & 19 & 10.8\% \\
+Staff \& Service & 424 & 37 & 8.7\%  \\
+Location         & 511 & 37 & 7.2\%  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.80\textwidth]{fig_absa_neg_by_aspect.png}
+  \caption{Negative mention share (\%) by aspect. Dashed line shows mean.}
+  \label{fig:absa_neg}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig_absa_heatmap.png}
+  \caption{Negative mention \% by traveller type $\times$ aspect (heatmap).}
+  \label{fig:absa_heat}
+\end{figure}
+
+%------------------------------------------------------------------
+\section{Strategic Recommendations}
+\label{sec:recs}
+
+Seven evidence-backed recommendations are derived directly from the
+pipeline artifacts. Table~\ref{tab:recs} provides a decision-table
+summary with owners and timelines.
+
+\begin{table}[t]
+\caption{Strategic decision table. All KPIs measured within stated timeline.}
+\label{tab:recs}
+\centering
+\small
+\begin{tabular}{lp{3.5cm}p{3.0cm}l}
+\toprule
+ID & Finding & KPI & Timeline \\
+\midrule
+R1 & WiFi \& Check-in: 39.5\% neg ABSA & Topic avg $\geq 8.50$ & 0--6 mo \\
+R2 & Family score 7.98 (lowest) & Family avg $\geq 8.20$ & 0--9 mo \\
+R4 & 6.4\% negative, unresponded & Neg share $\leq 4\%$ & 0--3 mo \\
+R3 & Staff \& Service avg 8.64 & $+10\%$ direct bookings & 3--12 mo \\
+R5 & Iberian share 8.9\% in Porto & Iberian share $\geq 15\%$ & 6--18 mo \\
+R6 & Room Comfort avg 7.36 & Topic avg $\geq 8.40$ & 3--9 mo \\
+R7 & Value aspect 13.5\% neg & Value avg $\geq 8.60$ & 3--6 mo \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key high-priority recommendations:
+
+\textbf{R1 --- WiFi \& Check-in:} Audit signal strength across all
+floors; install repeaters in weak zones; introduce digital key/PIN
+access to eliminate late-night lockout issues.
+
+\textbf{R2 --- Family Experience:} Offer interconnecting rooms and cot
+availability; add child-oriented breakfast items; distribute a printed
+city guide for families.
+
+\textbf{R4 --- Negative Review Response:} Deploy the binary sentiment
+classifier to auto-flag non-positive reviews within minutes of
+publication, triggering a 24-hour management response SLA.
+
+\textbf{R3 --- Staff Marketing:} Feature authentic guest quotes about
+staff in OTA listings; launch a `Staff Spotlight' social media series;
+nominate consistently praised staff for hospitality awards.
+
+%------------------------------------------------------------------
+\section{Conclusions}
+
+This analysis of 999 guest reviews delivers a clear, data-driven picture
+of hotel performance. An average score of 8.24/10 and 78.0\% positive
+sentiment confirm that the hotel's core proposition---friendly staff,
+unique vintage character, and central Porto location---resonates strongly
+with guests.
+
+Three findings demand immediate operational attention: (1) WiFi and
+check-in friction anchors the lowest-scoring ABSA aspect (39.5\%
+negative), fixable with targeted infrastructure investment; (2) Family
+Explorers are the lowest-scoring segment (7.98/10), representing an
+underserved market; and (3) 6.4\% of reviews are negative---a
+manageable number that the binary classifier (F1-macro 0.6471) can
+surface in real time.
+
+The hotel's greatest strength---staff quality---should be leveraged
+aggressively in OTA copy, social media, and PR to reinforce brand
+differentiation and justify premium pricing. Medium-term growth lies in
+Iberian market expansion (currently 8.9\% of reviews), converting
+Romantic Couples into repeat bookers via a loyalty programme, and
+standardising room comfort across all room types.
+
+\subsubsection*{Limitations}
+\begin{itemize}
+  \item \textit{Label-signal mismatch:} Score-derived sentiment labels
+    conflate linguistically similar positive/neutral reviews, capping
+    3-class F1-macro at ${\sim}0.53$.
+  \item \textit{Multilingual corpus:} Non-English reviews introduce
+    noise into LDA keyword lists despite stop-word filtering.
+  \item \textit{Single property:} Findings are specific to one hotel;
+    cross-property benchmarking would strengthen recommendation
+    confidence.
+  \item \textit{Review-level clustering:} K-Means segments reviews, not
+    customers; future work should aggregate per unique reviewer.
+\end{itemize}
+
+%------------------------------------------------------------------
+\begin{thebibliography}{8}
+\sloppy
+
+\bibitem{scikit-learn}
+Pedregosa, F., et al.: Scikit-learn: Machine learning in Python.
+\textit{Journal of Machine Learning Research} \textbf{12}, 2825--2830
+(2011)
+
+\bibitem{vader2014}
+Hutto, C.J., Gilbert, E.: VADER: A parsimonious rule-based model for
+sentiment analysis of social media text. In: \textit{Proceedings of
+ICWSM 2014} (2014)
+
+\bibitem{blei2003}
+Blei, D.M., Ng, A.Y., Jordan, M.I.: Latent Dirichlet Allocation.
+\textit{Journal of Machine Learning Research} \textbf{3}, 993--1022
+(2003)
+
+\bibitem{xlmroberta2020}
+Conneau, A., et al.: Unsupervised cross-lingual representation learning
+at scale. In: \textit{Proceedings of ACL 2020}, pp. 8440--8451 (2020)
+
+\bibitem{booking2026}
+Booking.com: Guest review data collected from publicly accessible review
+pages for a boutique hotel in Porto, Portugal. Retrieved 2026.
+\url{https://www.booking.com} (accessed 2026)
+
+\end{thebibliography}
+
+\end{document}
