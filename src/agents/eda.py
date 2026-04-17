@@ -6,8 +6,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+import numpy as np
 import pandas as pd
-from wordcloud import WordCloud, STOPWORDS
+from sklearn.feature_extraction.text import CountVectorizer
+from wordcloud import WordCloud
 
 from src.orchestration.state import WorkflowState
 from src.utils.logging_utils import get_logger
@@ -142,20 +144,42 @@ def run_eda(state: WorkflowState) -> WorkflowState:
     plt.tight_layout()
     figures.append(_savefig("fig_avg_score_by_room.png"))
 
-    # ── Figure 8 & 9: Word clouds ─────────────────────────────────────────
-    extra_stops = {
-        "hotel", "room", "stay", "one", "will", "also", "really", "bit",
-        "get", "got", "just", "like", "even", "us", "would", "could", "place",
-    }
-    wc_stopwords = STOPWORDS | extra_stops
+    # ── Figure 8 & 9: Word clouds (log-odds weighted) ────────────────────
+    # Use reviewer-authored pos_review / neg_review columns directly so there
+    # is no cross-contamination from full_review_text concatenation.
+    # Word size is driven by log-odds ratio: how much more a word appears in
+    # one side vs the other.  This works correctly with only 2 aggregated
+    # documents, unlike TF-IDF whose IDF is near-useless at corpus size = 2.
+    pos_text = " ".join(df["pos_review"].dropna()) if "pos_review" in df.columns else ""
+    neg_text = " ".join(df["neg_review"].dropna()) if "neg_review" in df.columns else ""
 
-    def _wordcloud(text: str, title: str, colormap: str, fname: str) -> str:
+    # Fallback: sentiment-filtered full text when dedicated columns are absent
+    if not pos_text.strip():
+        pos_text = " ".join(df.loc[df["sentiment"] == "positive", "full_review_text"].dropna())
+    if not neg_text.strip():
+        neg_text = " ".join(df.loc[df["sentiment"] == "negative", "full_review_text"].dropna())
+
+    def _log_odds_freqs(target_text: str, contrast_text: str) -> dict[str, float]:
+        """Score words by log-odds of appearing in target vs contrast."""
+        vec = CountVectorizer(stop_words="english", max_features=500)
+        mat = vec.fit_transform([target_text, contrast_text])
+        words = vec.get_feature_names_out()
+        target_counts = np.asarray(mat[0].todense()).flatten().astype(float)
+        contrast_counts = np.asarray(mat[1].todense()).flatten().astype(float)
+        vocab_size = len(words)
+        # Add-one smoothing so unseen words don't produce -inf
+        target_freq = (target_counts + 1) / (target_counts.sum() + vocab_size)
+        contrast_freq = (contrast_counts + 1) / (contrast_counts.sum() + vocab_size)
+        log_odds = np.log(target_freq / contrast_freq)
+        # Keep only words that favour the target side
+        return {w: float(lo) for w, lo in zip(words, log_odds) if lo > 0}
+
+    def _wordcloud(freqs: dict[str, float], title: str, colormap: str, fname: str) -> str:
         wc = WordCloud(
             width=1200, height=600, background_color="white",
-            colormap=colormap, stopwords=wc_stopwords,
-            max_words=120, collocations=True,
+            colormap=colormap, max_words=120,
             prefer_horizontal=0.85,
-        ).generate(text)
+        ).generate_from_frequencies(freqs)
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.imshow(wc, interpolation="bilinear")
         ax.axis("off")
@@ -163,14 +187,18 @@ def run_eda(state: WorkflowState) -> WorkflowState:
         plt.tight_layout()
         return _savefig(fname)
 
-    pos_text = " ".join(df.loc[df["sentiment"] == "positive", "full_review_text"].dropna())
-    neg_text = " ".join(df.loc[df["sentiment"] == "negative", "full_review_text"].dropna())
+    if pos_text.strip() and neg_text.strip():
+        pos_freqs = _log_odds_freqs(pos_text, neg_text)
+        neg_freqs = _log_odds_freqs(neg_text, pos_text)
+    else:
+        pos_freqs = {}
+        neg_freqs = {}
 
-    if pos_text.strip():
-        figures.append(_wordcloud(pos_text, "Most frequent words — Positive reviews",
+    if pos_freqs:
+        figures.append(_wordcloud(pos_freqs, "Most distinctive words — Positive reviews",
                                   "Greens", "fig_wordcloud_positive.png"))
-    if neg_text.strip():
-        figures.append(_wordcloud(neg_text, "Most frequent words — Negative reviews",
+    if neg_freqs:
+        figures.append(_wordcloud(neg_freqs, "Most distinctive words — Negative reviews",
                                   "Reds", "fig_wordcloud_negative.png"))
 
     # ── Figure 10: Temporal sentiment share ──────────────────────────────
