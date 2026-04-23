@@ -1,0 +1,302 @@
+% LLNCS LaTeX paper — Springer Proceedings format
+% Methodology-only version (5-page target).
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\usepackage{color}
+
+\begin{document}
+
+\title{Enhancing Customer Experience and Brand Perception: An NLP Pipeline for Hotel Review Analysis}
+\titlerunning{Hotel Review NLP Pipeline: Methodology}
+
+\author{
+  Andr\'{e} Pires\inst{1}\and Manuel Sampaio\inst{1}\and Max Salomon\inst{1}\and
+  Pedro Correia\inst{1}\and Pedro Meireles\inst{1}\and Mi\l{}osz Koz\l{}uk\inst{1}
+}
+\authorrunning{A. Pires et al.}
+\institute{FEP, Faculty of Economics of the University of Porto, Portugal}
+
+\maketitle
+
+\begin{abstract}
+This paper describes an NLP pipeline designed to analyse 999 Booking.com
+guest reviews of a boutique hotel in Porto, Portugal, collected between
+March 2023 and April 2026. The pipeline integrates exploratory analysis,
+K-Means customer segmentation, supervised sentiment classification against
+a lexicon baseline, Latent Dirichlet Allocation topic modelling, and
+rule-based Aspect-Based Sentiment Analysis. For each stage we document the
+design decisions, the alternatives considered, and the justifications
+grounded in the properties of the data and the constraints of the
+hospitality-review setting. Empirical results are reserved for the
+accompanying video.
+\keywords{Hotel reviews \and Sentiment analysis \and Topic modelling
+\and Customer segmentation \and Aspect-Based Sentiment Analysis \and NLP}
+\end{abstract}
+
+\section{Introduction}
+
+Online guest reviews have become a primary channel of customer
+intelligence in hospitality. Mehraliyev et al.~\cite{mehraliyev2022}
+note that most hospitality sentiment studies rely on off-the-shelf
+lexicon tools or a single supervised classifier, without integrating
+the complementary views offered by segmentation, topic modelling, and
+aspect-level analysis. Our work designs a pipeline combining these
+views, applied to one boutique property in Porto.
+
+The contribution is deliberately methodological. For each stage we
+record the choices made, the data properties that motivated them, and
+the alternatives that were rejected. Empirical findings produced by
+those choices are presented in the accompanying video. The paper is
+organised as a chain of design justifications: exploratory analysis
+informs the features used in segmentation; the observed class imbalance
+informs the sentiment classifier configuration; the absence of aspect
+annotations informs a rule-based approach to ABSA.
+
+\section{Data Collection and Preparation}
+
+Reviews were collected via a Selenium-based scraper targeting one hotel.
+Scraping was chosen because Booking.com exposes no public API for
+third-party review retrieval; Selenium is the standard workaround in prior
+hospitality NLP work. The scraper handled dynamic pagination, modal
+dialogs, and content-based deduplication. Captured fields included
+reviewer country, room type, nights, traveller type, positive and
+negative review text, and numerical score. Reviewer names were used only
+for deduplication and otherwise excluded, following GDPR
+data-minimisation.
+
+Cleaning was kept minimal and transparent: date parsing to year-month
+strings, extraction of the integer nights field, and concatenation of the
+positive and negative fields into a unified review text. The
+concatenation is deliberate: Booking.com's dual-field structure makes the
+two fields semantically complementary rather than independent, so
+separating them would double-count reviewers and distort downstream
+frequency statistics.
+
+Two data properties then constrained the rest of the pipeline. A
+non-trivial fraction of reviews are not in English, and no labelled
+multilingual hotel-review training set of sufficient size was
+available; we therefore applied \texttt{langdetect} and Google Translate
+to non-English reviews so that downstream classical models could operate
+in a single language space. Booking.com also publishes no ground-truth
+sentiment labels, only numerical scores, so we derived three-class
+labels via conservative thresholds (positive: ${\geq}\,8$; neutral: 6--7;
+negative: ${<}\,6$). The proxy is standard in hospitality NLP but
+embeds a label-signal mismatch discussed in Sec.~\ref{sec:sentiment}.
+
+\section{Exploratory Data Analysis}
+\label{sec:eda}
+
+Exploratory analysis here is a design step rather than a findings step:
+its role is to surface data properties that motivate subsequent choices.
+Four signals are consequential. The score distribution is heavily
+left-skewed, implying severe class imbalance under any score-based
+labelling scheme, which shapes the sentiment classifier configuration
+(Sec.~\ref{sec:sentiment}). Traveller type partitions guests into groups
+of markedly different size and behaviour, making it an informative
+clustering feature (Sec.~\ref{sec:segmentation}) rather than a confound.
+Word-frequency profiles for positive and negative subsets surface a
+compact set of recurring concerns (room amenities, noise, connectivity,
+staff, location, breakfast) that guided the eight aspects used in ABSA
+(Sec.~\ref{sec:absa}). Review volume is unevenly distributed across 38
+months, so models sensitive to temporal drift were avoided and
+stratified cross-validation was adopted downstream.
+
+\section{Customer Segmentation}
+\label{sec:segmentation}
+
+Segmentation is included because marketing actions (loyalty,
+family-targeted amenities, language-specific outreach) are naturally
+formulated per segment rather than per review. K-Means was used for three
+reasons: interpretability, scaling to the corpus size, and compatibility
+with a mixed numeric / one-hot feature representation, without the
+density assumptions that would favour Gaussian mixture clustering. DBSCAN
+and hierarchical clustering were considered and rejected. DBSCAN performs
+poorly on features with disparate scales even after standardisation, and
+hierarchical clustering scales less gracefully while offering no
+interpretability advantage.
+
+Five features combine numerical guest score (the outcome), review word
+count (a proxy for engagement depth), number of nights (a proxy for stay
+type), traveller type in one-hot form, and a three-level ordinal encoding
+of the derived sentiment label. Each captures a distinct behavioural
+axis, and each is available from the cleaned data without further
+engineering. All features were standardised with z-scores before
+clustering; standardisation is mandatory for K-Means on mixed-scale inputs
+since otherwise higher-magnitude features dominate the Euclidean
+distance. The number of clusters was selected by elbow analysis on the
+inertia curve over $k \in \{2,\ldots,8\}$, taking the smallest $k$ beyond
+which inertia reduction flattened.
+
+Two limitations follow from the design. Clustering is at the review
+level, not the customer level, because Booking.com reviews are not linked
+by user identifier after scraping; a guest with multiple stays therefore
+contributes multiple vectors. The one-hot encoding of traveller type also
+means resulting clusters partly recover the a priori traveller-type
+grouping, which is acknowledged rather than hidden in
+Sec.~\ref{sec:discussion}.
+
+\section{Sentiment Analysis}
+\label{sec:sentiment}
+
+Three decisions shape the sentiment stage: feature representation, baseline choice, and reformulation of the task.
+
+TF-IDF vectors (max 8{,}000 terms, unigram and bigram, sublinear term
+frequency) paired with linear classifiers (Logistic Regression, LinearSVC)
+form the feature representation. With fewer than one thousand labelled
+reviews, the sample is well below the regime where transformer fine-tuning
+reliably outperforms classical linear baselines for sentiment
+classification. Linear models on TF-IDF also preserve interpretability,
+a property that matters when downstream users are hotel operators rather
+than ML engineers.
+
+VADER~\cite{vader2014}, a rule-based lexicon analyser requiring no
+training data, serves as the baseline. It is the standard reference point
+in hospitality sentiment work, isolating the contribution of supervised
+learning: any supervised model that fails to outperform VADER in-domain
+offers little value beyond the lexicon itself. All supervised classifiers
+used \texttt{class\_weight=`balanced'} to correct for the imbalance
+surfaced in Sec.~\ref{sec:eda}, and 5-fold stratified cross-validation.
+Stratification is required: simple K-fold splits on imbalanced data
+produce folds in which minority classes are sparsely or unevenly
+represented.
+
+The task was reformulated as binary. The three-class formulation
+inherited from score-derived labels carries a structural problem: a
+review scored 7 is linguistically close to a review scored 8, and the
+neutral / positive boundary has no counterpart in the text, producing a
+label-signal mismatch that caps achievable performance. Collapsing to
+non-positive versus positive (threshold at score 8) eliminates the
+troubled boundary and yields the primary deployable configuration.
+Binary reformulation is common in hotel-review NLP for exactly this
+reason.
+
+Alongside the classical models, \texttt{xlm-roberta-base}~\cite{xlmroberta2020}
+was fine-tuned for 2 epochs as a multilingual baseline, to verify that
+the classical TF-IDF route remains competitive at this data scale and
+document the path available if the dataset were later scaled across
+properties. Monolingual BERT variants were rejected because they would
+force discarding the non-English subset.
+
+\section{Topic Modelling}
+
+Topic modelling serves a distinct purpose from segmentation: segmentation
+partitions \textit{reviewers}, whereas topic modelling partitions
+\textit{themes}. Latent Dirichlet Allocation~\cite{blei2003}, the
+foundational model for discovering interpretable topic-word distributions
+over a text corpus, was chosen over BERTopic on two grounds. Its topic
+distributions are directly readable by non-ML stakeholders, which fits
+the methodology paper's communicative goal, and it does not require
+pre-trained language-model embeddings whose multilingual behaviour on
+the data would be difficult to audit.
+
+Vocabulary was built with CountVectorizer using unigram and bigram
+features, min\_df=3, max\_df=0.90, and max\_features=3{,}000. The min\_df
+threshold removes idiosyncratic terms that would produce spurious
+single-review topics; max\_df removes near-universal terms (`hotel',
+`room', `stay') that provide no discriminative signal; max\_features
+controls model complexity. A hospitality-domain stop-word list extended
+the default English list with multilingual filler terms identified during
+EDA. The number of topics was selected by comparing perplexity across
+$k \in \{4, 6, 8\}$, with the smaller $k$ under-partitioning and the
+larger $k$ fragmenting identifiable themes into near-duplicates.
+
+\section{Aspect-Based Sentiment Analysis}
+\label{sec:absa}
+
+ABSA operates at sub-review granularity, attributing sentiment to
+specific hotel features. Zhang et al.~\cite{zhang2022} identify a
+spectrum of ABSA methods spanning rule and lexicon approaches,
+supervised neural models, and large language model prompting. A
+rule-based method was adopted for three reasons specific to our setting.
+Supervised neural ABSA requires aspect-level annotations that we do not
+have: the data contains numerical scores but no span or aspect-polarity
+labels, and annotating roughly one thousand reviews across eight
+aspects was out of scope. Pre-trained ABSA models from the SemEval
+restaurant or laptop tracks do not transfer cleanly to hospitality
+vocabulary. Rule-based extraction is also transparent: aspect set,
+keyword lists, and scoring procedure can all be audited by a non-ML
+reader, aligning with the pipeline's interpretability goal.
+
+The eight aspects were not chosen a priori but derived from the
+word-frequency analysis in Sec.~\ref{sec:eda}: the most recurrent
+hotel-domain nouns and noun phrases were grouped into Location, Staff \&
+Service, Room, Cleanliness, Breakfast, Noise, Value, and WiFi \&
+Check-in. For each aspect a keyword list was built; each review text
+was then scanned for keyword occurrences, and a context window of
+${\pm}\,12$ tokens around each hit was scored with VADER. The window is a
+standard setting in lexicon-based ABSA: small enough to exclude
+unrelated sentiment from distant clauses, large enough to capture a
+modifier-head relationship that may span a few tokens. Aspect mentions
+were deduplicated per review so that a guest mentioning WiFi three
+times contributes one instance per aspect. The output is, for each
+review and each aspect, either a signed sentiment score or a null.
+
+\section{Methodological Discussion}
+\label{sec:discussion}
+
+Several choices involve trade-offs worth making explicit. Linear models,
+rule-based ABSA, and classical LDA were adopted despite stronger neural
+alternatives, since the data size does not support reliable transformer
+fine-tuning and since pipeline users are hotel operators rather than ML
+practitioners; a richer dataset across properties would justify
+revisiting the trade-off. Score-derived sentiment labels are a proxy,
+embedding a label-signal mismatch that binary reformulation only
+partially resolves; human-annotated labels on a subset would quantify
+the gap directly. K-Means clusters at the review level because
+Booking.com reviews carry no stable user identifier after scraping,
+biasing centroids toward frequent reviewers. All findings and design
+validations are conditional on one property; the pipeline runs unchanged
+on other properties, and cross-property comparison is the most
+informative next application. Booking.com also exposes no helpful-vote
+counts or verified-purchase flags, precluding review helpfulness
+prediction and fake-review detection tasks that are standard in related
+TripAdvisor-based work~\cite{ott2011}.
+
+{\footnotesize
+\begin{thebibliography}{8}
+\setlength{\itemsep}{0pt}
+\sloppy
+
+\bibitem{scikit-learn}
+Pedregosa, F., et al.: Scikit-learn: Machine learning in Python.
+\textit{JMLR} \textbf{12}, 2825--2830 (2011)
+
+\bibitem{vader2014}
+Hutto, C.J., Gilbert, E.: VADER: A parsimonious rule-based model for
+sentiment analysis of social media text. In: \textit{Proc. ICWSM 2014}
+(2014)
+
+\bibitem{blei2003}
+Blei, D.M., Ng, A.Y., Jordan, M.I.: Latent Dirichlet Allocation.
+\textit{JMLR} \textbf{3}, 993--1022 (2003)
+
+\bibitem{xlmroberta2020}
+Conneau, A., et al.: Unsupervised cross-lingual representation learning
+at scale. In: \textit{Proc. ACL 2020}, pp. 8440--8451 (2020)
+
+\bibitem{mehraliyev2022}
+Mehraliyev, F., Chan, I.C.C., Kirilenko, A.P.: Sentiment analysis in
+hospitality and tourism: a thematic and methodological review.
+\textit{Int. J. Contemp. Hosp. Manag.} \textbf{34}(1), 46--77 (2022)
+
+\bibitem{zhang2022}
+Zhang, W., Li, X., Deng, Y., Bing, L., Lam, W.: A survey on aspect-based
+sentiment analysis: tasks, methods, and challenges. \textit{IEEE Trans.
+Knowl. Data Eng.} \textbf{35}(11), 11019--11038 (2022)
+
+\bibitem{ott2011}
+Ott, M., Choi, Y., Cardie, C., Hancock, J.T.: Finding deceptive opinion
+spam by any stretch of the imagination. In: \textit{Proc. ACL 2011},
+pp. 309--319 (2011)
+
+\end{thebibliography}
+}
+
+\end{document}
